@@ -22,7 +22,7 @@ class CreateResultActionsTable extends Migration
             $table->text('actions_term_2')->nullable();
             $table->text('actions_term_3')->nullable();
             $table->text('actions_term_4')->nullable();
-            $table->timestamps()->default('current_timestamp()');
+            $table->timestamp('date')->nullable();
         });
     }
 

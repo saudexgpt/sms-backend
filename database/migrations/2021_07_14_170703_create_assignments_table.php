@@ -17,7 +17,7 @@ class CreateAssignmentsTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('school_id');
             $table->integer('subject_teacher_id');
-            $table->timestamp('deadline')->default('current_timestamp()');
+            $table->timestamp('deadline')->nullable();
             $table->longText('assignment_details')->nullable();
             $table->string('download_link')->nullable();
             $table->integer('sess_id');
