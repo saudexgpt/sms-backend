@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\UserResource;
+use App\Models\CurriculumSetup;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AuditTrail;
@@ -19,6 +20,8 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     protected $user;
+
+
     public function uploadFile(Request $request)
     {
         if ($request->file('avatar') != null && $request->file('avatar')->isValid()) {
