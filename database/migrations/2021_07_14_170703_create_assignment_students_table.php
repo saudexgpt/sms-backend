@@ -18,7 +18,7 @@ class CreateAssignmentStudentsTable extends Migration
             $table->integer('school_id');
             $table->unsignedInteger('student_id');
             $table->unsignedInteger('assignment_id');
-            $table->timestamp('date')->default('current_timestamp()');
+            $table->timestamp('date')->nullable();
             $table->string('answer_link', 191)->nullable();
             $table->longText('student_answer')->nullable();
             $table->tinyInteger('score')->nullable();

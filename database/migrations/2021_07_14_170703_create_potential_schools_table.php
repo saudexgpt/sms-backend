@@ -34,7 +34,7 @@ class CreatePotentialSchoolsTable extends Migration
             $table->string('admin_gender', 6)->nullable();
             $table->string('folder_key', 50)->nullable();
             $table->enum('is_active', ['0', '1'])->default('0');
-            $table->timestamps()->default('current_timestamp()');
+            $table->timestamp('date')->nullable();
             $table->dateTime('deleted_at')->nullable();
         });
     }

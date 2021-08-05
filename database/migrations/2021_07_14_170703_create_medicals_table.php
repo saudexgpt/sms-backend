@@ -18,7 +18,7 @@ class CreateMedicalsTable extends Migration
             $table->unsignedInteger('school_id');
             $table->unsignedInteger('student_id');
             $table->string('title', 191);
-            $table->timestamp('date')->default('current_timestamp()');
+            $table->timestamp('date')->nullable();
             $table->string('severity_level', 191);
             $table->string('medical_report', 191)->nullable();
             $table->timestamps();
