@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class CurriculumLevel extends Model
 {
-    public function curriculumSetup()
+    public function curriculumCategory()
     {
-        return $this->belongsTo(CurriculumSetup::class, 'curriculum_setup_id', 'id');
+        return $this->belongsTo(CurriculumCategory::class, 'curriculum_category_id', 'id');
+    }
+    public function curriculumLevelGroup()
+    {
+        return $this->belongsTo(CurriculumLevelGroup::class, 'curriculum_level_group_id', 'id');
     }
 }

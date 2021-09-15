@@ -27,23 +27,19 @@ class AuthController extends Controller
     }
     public function findUsername()
     {
-        $login = request()->input('email');
+        $login = request()->input('username');
 
-        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user = User::where('phone1', $login)->first();
 
-        request()->merge([$fieldType => $login]);
+        if ($user) {
+            $fieldType =  'phone1';
 
-        // $user = User::where('phone', $login)->first();
+            request()->merge([$fieldType => $login]);
+        } else {
+            $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        // if ($user) {
-        //     $fieldType =  'phone1';
-
-        //     request()->merge([$fieldType => $login]);
-        // } else {
-        //     $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-
-        //     request()->merge([$fieldType => $login]);
-        // }
+            request()->merge([$fieldType => $login]);
+        }
 
 
         return $fieldType;

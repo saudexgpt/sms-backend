@@ -2,39 +2,226 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Events\ClassEvent;
+use App\Events\Event;
+use App\Events\SubjectEvent;
 use App\Http\Resources\UserResource;
-use App\Models\CurriculumSetup;
+use App\Models\ActivatedModule;
+use App\Models\Gallery;
+use App\Models\Grade;
+use App\Models\Guardian;
+use App\Models\Level;
+use App\Models\LocalGovernmentArea;
+use App\Models\News;
+use App\Models\Permission;
 use App\Models\Role;
+use App\Models\School;
+use App\Models\SSession;
+use App\Models\Staff;
+use App\Models\Student;
+use App\Models\StudentsInClass;
+use App\Models\Subject;
+use App\Models\Term;
+use App\Models\UniqNumGen;
 use App\Models\User;
-use App\Notifications\AuditTrail;
-use Notification;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     protected $user;
+    protected $staff;
+    protected $student;
+    protected $guardian;
+    protected $partner;
+    protected $role;
+    protected $roles = [];
+    protected $school;
+    protected $grades;
+    protected $levels = [];
+    protected $data = [];
+    protected $this_term;
+    protected $this_session;
+    protected $admission_session;
+    protected $currency = '₦'; //'&#x20A6;';
 
-
-    public function uploadFile(Request $request)
+    public function __construct(Request $httpRequest)
     {
-        if ($request->file('avatar') != null && $request->file('avatar')->isValid()) {
-            $mime = $request->file('avatar')->getClientMimeType();
+        $this->middleware(function ($request, $next) {
+            if (Auth::check()) {
 
-            if ($mime == 'image/png' || $mime == 'image/jpeg' || $mime == 'image/jpg' || $mime == 'image/gif') {
-                $name = time() . "." . $request->file('avatar')->guessClientExtension();
-                $folder = "items";
-                $avatar = $request->file('avatar')->storeAs($folder, $name, 'public');
+                // $this->resetStudentInClassTable();
+                if (($this->getUser()->role == "staff")) {
 
-                return response()->json(['avatar' => 'storage/' . $avatar], 200);
+
+                    $school_id = $this->getStaff()->school_id;
+
+                    $this->setSchool($school_id);
+                } else if ($this->getUser()->role == "student") {
+
+                    $school_id = $this->getStudent()->school_id;
+
+                    $this->setSchool($school_id);
+                }
+
+                if (($this->getUser()->role == "parent") || ($this->getUser()->role == "staff")) {
+
+                    if ($this->getGuardian()) {
+
+
+                        $school_id = $this->getGuardian()->school_id;
+
+                        $this->setSchool($school_id);
+                    }
+                }
+
+                if ($this->getUser()->role == "partner") {
+                    $this->setPartner();
+                }
+            }
+            return $next($request);
+        });
+    }
+
+    private function resetStudentInClassTable()
+    {
+        $table = 'students_in_classes_old';
+        $queries = DB::table($table)->get();
+        foreach ($queries as $query) {
+            $school_id = $query->school_id;
+            $student_ids_array = explode('~', $query->student_ids);
+            $class_teacher_id = $query->class_teacher_id;
+            $sess_id = $query->sess_id;
+            $term_id = $query->term_id;
+            foreach ($student_ids_array as $student_id) {
+
+                if ($student_id !== '') {
+                    $student_in_class = StudentsInClass::where([
+                        'class_teacher_id' => $class_teacher_id,
+                        'sess_id' => $sess_id,
+                        'student_id' => $student_id,
+                        'school_id' => $school_id
+                    ])->first();
+                    if (!$student_in_class) {
+                        $student_in_class = new StudentsInClass();
+                        $student_in_class->class_teacher_id = $class_teacher_id;
+                        $student_in_class->sess_id = $sess_id;
+                        $student_in_class->student_id = $student_id;
+                        $student_in_class->school_id = $school_id;
+                        $student_in_class->save();
+                    }
+                }
             }
         }
+    }
+    public function render($data = [])
+    {
+        $this->data = array_merge($this->data, $data);
+
+        $this->data['school'] = $this->getSchool();
+        $this->data['current_session'] = $this->getSession();
+        $this->data['current_term'] = $this->getTerm();
+        // if (Auth::check()) {
+        //     if ($this->getUser()->password_status == 'default') {
+
+        //         return $this->updatePassword($this->data);
+        //     }
+        // }
+        // if ($this->getUser()->role == 'student') {
+        //     if ($this->studentAccountSuspended()) {
+        //         return view('suspended.student', $this->data);
+        //     }
+        // }
+
+
+        // if ($this->getUser()->role != 'super') {
+        //     if ($this->schoolAccountSuspended()) {
+        //         return view('suspended.school', $this->data);
+        //     }
+        // }
+        // if(request()->ajax()){
+        //     //this is for json response required to render frontend templates like vue
+        //     return response()->json($this->data);
+        // }
+
+        //print_r($data['class']->class->name);exit;*/
+        return response()->json($this->data, 200);
+    }
+    // public function toggleStudentNonPaymentSuspension(Request $request)
+    // {
+    //     $student_ids = $request->student_ids;
+    //     foreach ($student_ids as $student_id) {
+    //         $student = Student::find($student_id);
+    //         $status = $student->studentship_status;
+    //         if ($status == 1) {
+    //             $student->studentship_status = 0;
+    //         } else {
+    //             $student->studentship_status = 1;
+    //         }
+    //         $student->save();
+    //     }
+    //     return 'success';
+    // }
+
+    public function studentAccountSuspended()
+    {
+        $student = $this->getStudent();
+        if ($student->studentship_status !== 'active') {
+            return true;
+        }
+        return false;
+    }
+    public function schoolAccountSuspended()
+    {
+        $school = $this->getSchool();
+        if ($school->suspended_for_nonpayment === 1) {
+            return true;
+        }
+        return false;
+    }
+    public function setRoles()
+    {
+        $school_id = $this->getSchool()->id;
+        $roles = Role::where('school_id', 0)->orWhere('school_id', $school_id)->get();
+        foreach ($roles as $role) {
+            $role_permissions = [];
+            foreach ($role->permissions as $permission) {
+                $role_permissions[] = $permission->id;
+            }
+            $role->role_permissions = $role_permissions;
+        }
+        $this->roles = $roles;
+    }
+    public function getRoles()
+    {
+        $this->setRoles();
+        return $this->roles;
+    }
+    public function getPermissions()
+    {
+        $permissions = Permission::orderBy('name')->get();
+        return $permissions;
+    }
+    public function getSoftwareName()
+    {
+        return env("APP_NAME");
+    }
+    public function getAmountOld()
+    {
+        return $this->amount_old;
+    }
+
+    public function getAmountNew()
+    {
+        return $this->amount_new;
     }
 
     public function setUser()
@@ -48,58 +235,429 @@ class Controller extends BaseController
 
         return $this->user;
     }
-    public function currency()
-    {
-        return '₦';
-    }
-    public function getInvoiceNo($prefix, $next_no)
-    {
-        $no_of_digits = 5;
 
-        $digit_of_next_no = strlen($next_no);
-        $unused_digit = $no_of_digits - $digit_of_next_no;
-        $zeros = '';
-        for ($i = 1; $i <= $unused_digit; $i++) {
-            $zeros .= '0';
+    public function setStaff()
+    {
+
+        $user = $this->getUser();
+
+        //this updates the staff table with the user_id if not exist;
+        $staff = Staff::where('user_id', $user->id)->first();
+
+
+        $this->staff = $staff;
+    }
+    public function getStaff()
+    {
+        $this->setStaff();
+        return $this->staff;
+    }
+    public function setStudent($student_id = null)
+    {
+
+        $user = $this->getUser();
+        if ($student_id) {
+            $student = Student::find($student_id);
+        } else {
+            $student = Student::where('user_id', $user->id)->first();
         }
 
-        return $prefix . $zeros . $next_no;
+        $this->student = $student;
     }
-    public function fetchNecessayParams()
+
+    public function getStudent()
+    {
+        $this->setStudent();
+        return $this->student;
+    }
+
+    public function setGuardian()
     {
         $user = $this->getUser();
-        $all_roles = Role::orderBy('name')->get();
-        $default_roles = Role::orderBy('name')->get();
-
-        return response()->json([
-            'params' => compact('all_roles', 'default_roles')
-        ]);
+        $guardian = Guardian::where('user_id', $user->id)->first();
+        $this->guardian = $guardian;
     }
-    public function logUserActivity($title, $description, $roles = [])
+
+    public function getGuardian()
+    {
+        $this->setGuardian();
+        return $this->guardian;
+    }
+
+
+    public function setSchool($id)
+    {
+        $school = School::findOrFail($id);
+        $this->school = $school;
+    }
+
+    public function getSchool()
+    {
+        return $this->school;
+    }
+
+    public function setGrades()
+    {
+        $school_id = $this->getSchool()->id;
+        $grades = Grade::where('school_id', $school_id)->get();
+        $this->grades = $grades;
+    }
+
+    public function getGrades()
+    {
+        $this->setGrades();
+        return $this->grades;
+    }
+
+    public function getLevelGrades($curriculum_level_group_id)
+    {
+        $school_id = $this->getSchool()->id;
+
+        $grades = Grade::where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->get();
+        return $grades;
+    }
+    public function setLevels()
     {
         // $user = $this->getUser();
-        // if ($role) {
-        //     $role->notify(new AuditTrail($title, $description));
-        // }
-        // return $user->notify(new AuditTrail($title, $description));
-        // send notification to admin at all times
-        $users = User::whereHas('roles', function ($query) {
-            $query->where('name', '=', 'super')->orWhere('name', '=', 'admin'); // this is the role id inside of this callback
-        })->get();
-
-        if (in_array('sales_rep', $roles)) {
-            $sales_rep = User::whereHas('roles', function ($query) {
-                $query->where('name', '=', 'sales_rep'); // this is the role id inside of this callback
-            })->get();
-            $users = $users->merge($sales_rep);
+        $school = $this->getSchool();
+        // $curriculum = $school->curriculum;
+        /*$nur_levels = $pry_levels = $sec_levels = [];
+        if ($school->nursery == "1") {
+            $nur_levels = Level::where('curriculum', 'Nursery')->get();
         }
-        // var_dump($users);
-        $notification = new AuditTrail($title, $description);
-        return Notification::send($users->unique(), $notification);
-        // $activity_log = new ActivityLog();
-        // $activity_log->user_id = $user->id;
-        // $activity_log->action = $action;
-        // $activity_log->user_type = $user->roles[0]->name;
-        // $activity_log->save();
+        if ($school->pry == "1") {
+            $pry_levels = Level::where('curriculum', 'Primary')->get();
+        }
+        if ($school->secondary == "1") {
+            $sec_levels = Level::where('curriculum', 'Secondary')->get();
+        }*/
+        $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school->id)->orderBy('id')->get();
+
+        // if ($user->hasRole('hod_sec') || $user->hasRole('principal')) {
+        //     # code...
+        //     if ($curriculum == 'british') {
+        //         $levels = Level::where('school_id', $school->id)->whereIn('curriculum_level_group_id', ['3', '4'])->orderBy('id')->get();
+        //     }
+        // }
+        // if ($user->hasRole('hod_pri') || $user->hasRole('head_primary')) {
+        //     if ($curriculum == 'british') {
+        //         $levels = Level::where('school_id', $school->id)->whereIn('curriculum_level_group_id', ['1', '2'])->orderBy('id')->get();
+        //     }
+        // }
+        $this->levels = $levels;
+    }
+    public function fetchSessionAndTerm()
+    {
+        $sessions = SSession::orderBy('id', 'DESC')->get();
+        $terms = Term::orderBy('id')->get();
+        return $this->render(compact('sessions', 'terms'));
+    }
+
+    public function getLevels()
+    {
+        $this->setLevels();
+        return $this->levels;
+    }
+
+    public function setSession()
+    {
+        //$session = SSession::where('is_active', '1')->first();
+        //$this->this_session = $session;
+        $school = $this->getSchool();
+        $session = SSession::find($school->current_session);
+
+        $this->this_session = $session;
+    }
+
+    public function getSession()
+    {
+        $this->setSession();
+        return $this->this_session;
+    }
+
+    public function setAdmissionSession()
+    {
+        $this->admission_session = SSession::where('is_admission_session', 'YES')->first();
+    }
+
+    public function getAdmissionSession()
+    {
+        $this->setAdmissionSession();
+        return $this->admission_session;
+    }
+    public function setTerm()
+    {
+        //$term = Term::where('is_active', '1')->first();
+        //$this->this_term = $term;
+        $school = $this->getSchool();
+        $session = Term::find((int)$school->current_term);
+
+        $this->this_term = $session;
+    }
+
+    public function getTerm()
+    {
+        $this->setTerm();
+        return $this->this_term;
+    }
+
+
+    public function getRelationship($staffs, $type = 'all')
+    {
+        if ($type != 'all') {
+
+            $user_id = $staffs->user_id;
+
+            $school_id = $staffs->school_id;
+
+            $users = User::find($user_id);
+
+            $schools = School::find($school_id);
+
+            $staffs->user = $users;
+
+            $staffs->school = $schools;
+        } else {
+            foreach ($staffs as $staff) :
+                $user_id = $staff->user_id;
+                $school_id = $staff->school_id;
+
+                $users = User::find($user_id);
+                $schools = School::find($school_id);
+
+                $staff->user = $users;
+                $staff->school = $schools;
+
+            endforeach;
+        }
+    }
+
+    public function setColorCode(Request $request)
+    {
+        //return $request->color_code;
+        if ($request->option == 'grade') {
+            $grade = Grade::find($request->id);
+            $grade->color_code = '#' . $request->color_code;
+
+            if ($grade->save()) {
+                return 'success';
+            }
+        } else {
+            if ($request->option == 'subject') {
+                $subject = Subject::find($request->id);
+                $subject->color_code = '#' . $request->color_code;
+
+                if ($subject->save()) {
+                    return 'success';
+                }
+            }
+        }
+        return 'failed';
+    }
+
+
+    public function uploadFile()
+    {
+    }
+
+    public function auditTrailEvent($request, $action)
+    {
+
+        $this->setUser();
+        $user = $this->getUser();
+        if ($user) {
+            if ($user->role == 'super') {
+                return false;
+            }
+            if (($user->role == "staff")) {
+
+
+                $user_school_id = Staff::where('user_id', $user->id)->first()->school_id;
+            } else if ($user->role == "student") {
+
+                $user_school_id = Student::where('user_id', $user->id)->first()->school_id;
+            } else if ($user->role == "parent") {
+                $user_school_id = Guardian::where('user_id', $user->id)->first()->school_id;
+            }
+
+            $request->actor_id = $user->id; //this is the id of the user in users table
+            $request->actor_name = $user->first_name . ' ' . $user->last_name;
+            $request->actor_role = $user->role;
+            $request->school_id = $user_school_id;
+            $request->action = $action;
+
+            event(new Event($request));
+        }
+    }
+
+    public function teacherStudentEventTrail($request, $action, $activity_type)
+    {
+
+
+        $user = $this->getUser();
+        $user_school_id = $this->getSchool()->id;
+
+        $request->actor_id = $user->id; //this is the id of the user in users table
+        $request->actor_name = $user->first_name . ' ' . $user->last_name;
+        $request->actor_role = $user->role;
+        $request->school_id = $user_school_id;
+        $request->action = $action;
+
+
+        event(new Event($request));
+
+        if ($activity_type == 'class') {
+            event(new ClassEvent($request)); //log the class event
+        } else {
+            event(new SubjectEvent($request)); //log the subject event
+        }
+    }
+
+
+
+    public function getLGAOfOrigin(Request $request)
+    {
+        //
+        $lgas = LocalGovernmentArea::where('state_id', $request->state_id)->get();
+
+        $selected_lgas = [];
+        foreach ($lgas as $lga) :
+            $selected_lgas[] = ['id' => $lga->id, 'name' => $lga->name];
+        endforeach;
+
+
+
+        $fetched_data = $selected_lgas;
+
+        return json_encode($fetched_data);
+    }
+    public function news()
+    {
+
+        $news = News::orderBy('id', 'DESC')->get();
+        return $news;
+    }
+    public function galleries()
+    {
+
+        $galleries = Gallery::where('is_show', 'yes')->orderBy('id', 'DESC')->get();
+        return $galleries;
+    }
+    // public function categories()
+    // {
+
+    //     $categories = Category::where('id', '!=', 0)->orderBy('id')->get();
+
+    //     foreach ($categories as $category) :
+
+    //         $contents = Content::where('category_id', $category->id)->get();
+
+    //         $category->contents = $contents;
+    //     endforeach;
+    //     return $categories;
+    // }
+
+    public function schoolsInLGA()
+    {
+        $this->setLga();
+        $lgas = $this->getLga();
+
+        $schools_in_lga = [];
+        foreach ($lgas as $lga) :
+            $schools  = School::where('lga_id', $lga->id)->orderBy('name')->get();
+
+            if ($schools->count() > 0) {
+                $schools_in_lga[$lga->name] = $schools;
+            }
+        endforeach;
+
+        return $schools_in_lga;
+    }
+
+    public function uploadImageContent($request)
+    {
+        $request;
+        $sch  = new School();
+        $folder_key = $sch->getFolderKey($this->getSchool()->id);
+        $today = todayDate();
+        $purpose = 'assignment'; //$request->purpose;
+
+        $folder = "schools/" . $folder_key . '/' . $purpose . '/' . $today;
+        $action_by = 'Sam';
+        $extension = $request->file('student_answer')->guessClientExtension();
+
+        $name = "uploads/post_images/" . str_replace('/', '-', $action_by) . "." . $extension;
+
+        $this->validate($request, [
+            'student_answer' => 'mimes:jpeg,jpg,png'
+        ]);
+
+        $file = $request->file('student_answer');
+        $filename = $file->getClientOriginalName();
+
+        //$year = Carbon::now()->year;
+        $imagePath = $folder; //"/uploads/post_images/{$year}/";
+
+        /*if (file_exists(public_path($imagePath) . $filename)) {
+            $filename = Carbon::now()->timestamp . '.' . $filename;
+        }*/
+
+        $file->move(public_path() . $imagePath, $filename);
+
+        $url = $imagePath . $filename;
+
+        echo "<script>window.parent.CKEDITOR.tools.callFunction(1,'{$url}','')</script>";
+    }
+
+    public function updatePassword($data)
+    {
+
+        $user = $this->getUser();
+
+        $this->data = $data;
+        $this->data['id'] = $user->id;
+        $this->data['user'] = $user;
+        $this->data['status'] = 'default';
+        $this->data['table'] = 'users';
+        return view('auth.passwords.update', $this->data);
+    }
+
+    public function generateUsername($school_id, $role)
+    {
+        $uniq_num_gen_obj = new UniqNumGen();
+        return $uniq_num_gen_obj->generateUsername($school_id, $role);
+    }
+
+    public function updateUniqNumDb($school_id, $role)
+    {
+        $uniq_num_gen_obj = new UniqNumGen();
+        $uniq_num_gen_obj->updateUniqNumDb($school_id, $role);
+    }
+
+    public function saveGeneralSettings(Request $request)
+    {
+        $school = $this->getSchool();
+        $school->navbar_bg = $request->navbar_bg;
+        $school->sidebar_bg = $request->sidebar_bg;
+        $school->main_bg = $request->main_bg;
+        $school->logo_bg = $request->logo_bg;
+        $school->display_student_position = $request->display_student_position;
+
+        $school->save();
+        if ($request->ajax()) {
+
+            return "true";
+        }
+
+        return redirect()->back();
+    }
+    public function accessDenied()
+    {
+        return $this->render('errors.403');
+    }
+
+    public function moduleNotEnabled($module_slug)
+    {
+        return $this->render('errors.module_not_enabled', compact('module_slug'));
     }
 }
