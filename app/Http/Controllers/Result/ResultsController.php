@@ -147,12 +147,12 @@ class ResultsController extends Controller
     public function studentSelectionOptions()
     {
         $student_id = $this->getStudent()->id;
-        $school_id = $this->getSchool()->id;
+        $school = $this->getSchool();
         $terms = Term::get();
-        $sessions = SSession::orderBy('id', 'DESC')->get();
+        $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
         $my_classes = StudentsInClass::with('classTeacher.c_class')->where([
             'student_id' => $student_id,
-            'school_id' => $school_id,
+            'school_id' => $school->id,
         ])->get();
         return  response()->json(compact('my_classes', 'terms', 'sessions', 'student_id'), 200);
     }
@@ -783,7 +783,7 @@ class ResultsController extends Controller
             'sess_id' => $sess_id,
             'term_id' => $term_id,
             'sub_term' => $term_spec,
-            'student_id' => $student_in_class->student_id
+            'student_id' => $student_id
         ])->first();
         $student_results = Result::with(['subjectTeacher.staff.user', 'subjectTeacher.subject'])->where(
             [
@@ -798,7 +798,7 @@ class ResultsController extends Controller
         $students_in_class = StudentsInClass::where([
             'class_teacher_id' => $class_teacher_id,
             'sess_id' => $sess_id,
-            'term_id' => $term_id,
+            // 'term_id' => $term_id,
             'school_id' => $school_id,
         ])->get();
 
@@ -818,6 +818,7 @@ class ResultsController extends Controller
                 $class_average = 0;
                 $student_average = 0;
                 $position = "";
+                $class_average_color = '';
             } else {
                 $class_average = sprintf("%01.1f", $total_subject_class_average / $result_count);
                 $student_average = sprintf("%01.1f", $total_student_score / $result_count);
@@ -846,7 +847,7 @@ class ResultsController extends Controller
             //return $students;
             //if($request->ajax() ){
 
-            return response()->json(compact('student_results', 'term_spec', 'class_teacher_id', 'sess_id', 'term_id', 'view_others', 'this_session', 'this_term', 'student_in_class', 'behavior', 'skill', 'grades', 'class_average', 'student_average', 'single', 'noprint', 'class_average_color', 'student_average_color', 'stud', 'ratings', 'student_remark', 'school', 'no_in_class', 'position'), 200);
+            return response()->json(compact('student_results', 'term_spec', 'class_teacher_id', 'sess_id', 'term_id', 'view_others', 'this_session', 'this_term', 'student_in_class', 'behavior', 'skill', 'grades', 'class_average', 'student_average', 'single', 'noprint', 'stud', 'ratings', 'student_remark', 'school', 'no_in_class', 'position'), 200);
         }
         $message = "RECORD NOT FOUND";
 

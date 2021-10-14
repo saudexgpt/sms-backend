@@ -3,9 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\LMS\Entities\Question;
-use Modules\LMS\Entities\QuizCompilation;
-use Modules\LMS\Entities\TheoryQuestion;
 
 class SubjectTeacher extends Model
 {

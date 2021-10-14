@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\Assignment\AssignmentsController;
+use App\Http\Controllers\Attendance\AttendanceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CurriculumCategoryController;
+use App\Http\Controllers\LMS\ClassroomsController;
+use App\Http\Controllers\LMS\QuizController;
 use App\Http\Controllers\Result\ResultsController;
 use App\Http\Controllers\Setup\ClassesController;
 use App\Http\Controllers\Setup\LevelsController;
@@ -12,6 +16,7 @@ use App\Http\Controllers\Setup\SectionsController;
 use App\Http\Controllers\Setup\SessionsController;
 use App\Http\Controllers\Setup\SubjectsController;
 use App\Http\Controllers\Setup\TermsController;
+use App\Http\Controllers\TimeTable\RoutinesController;
 use App\Http\Controllers\Users\GuardiansController;
 use App\Http\Controllers\Users\StudentsController;
 use App\Http\Controllers\Users\UsersController;
@@ -54,6 +59,131 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('level-group/all', [CurriculumCategoryController::class, 'allCurriculumLevelGroups']);
         Route::get('level/all', [CurriculumCategoryController::class, 'allCurriculumLevels']);
         Route::put('level-group/update/{curriculum_level_group}', [CurriculumCategoryController::class, 'updateCurriculumLevelGroup']);
+    });
+    Route::group(['prefix' => 'attendance'], function () {
+        Route::get('classes', [AttendanceController::class, 'classes']);
+        Route::get('create/class', [AttendanceController::class, 'createClassAttendance']);
+        Route::post('store/class', [AttendanceController::class, 'storeClassAttendance']);
+
+        Route::get('subjects', [AttendanceController::class, 'subjects']);
+        Route::get('create/subject', [AttendanceController::class, 'createSubjectAttendance']);
+        Route::post('store/subject', [AttendanceController::class, 'storeSubjectAttendance']);
+        //Route::get('fetch-level', 'AttendanceController@fetchLevelAttendanceChart');
+
+    });
+    Route::group(['prefix' => 'assignment'], function () {
+        Route::get('/view-assignment', [AssignmentsController::class, 'index']);
+        Route::get('/all-assignments', [AssignmentsController::class, 'allAssignments']);
+        Route::get('fetch-subjects', [AssignmentsController::class, 'fetchSubjects']);
+        Route::post('store', [AssignmentsController::class, 'store']);
+        Route::post('score', [AssignmentsController::class, 'scoreAssignment']);
+        // Route::put('update/{assignment}', [AssignmentsController::class, 'update']);
+        Route::delete('destroy/{id}', [AssignmentsController::class, 'destroy']);
+        Route::get('student/assignments', [AssignmentsController::class, 'studentAssignments']);
+
+        Route::get('student/answer/{id}', [AssignmentsController::class, 'studentAnswerDetails']);
+        Route::post('student/assignments/tackle', [AssignmentsController::class, 'tackleAssignment']);
+
+        // Route::group(['middleware' => 'permission:admin~proprietor'],function() {
+
+        //     Route::get('all-assignment', 'AssignmentsController@allAssignments')->name('all_assignments');
+
+
+        // });
+        // Route::group(['middleware' => 'permission:teacher'],function() {
+
+        //     Route::resource('assignments', 'AssignmentsController');
+
+
+        //     Route::get('teacher-class', 'AssignmentsController@teacherClassAssignment')->name('teacher_class_assignment');
+
+
+
+        // });
+        // Route::group(['middleware' => 'permission:teacher~admin~proprietor'], function() {
+        //       Route::get('student/answer/{id}', 'AssignmentsController@studentAnswerDetails')->name('student_answer_details');
+
+        //       Route::get('mark/{id}', 'AssignmentsController@getMark')->name('mark_assignment');
+        // });
+        // Route::group(['middleware' => 'permission:parent~teacher~admin~proprietor'], function() {
+
+
+
+        //     Route::get('parent/student/assignment/{id}', 'AssignmentsController@studentAssignments')->name('parent_student_assignments');
+        // });
+
+        // Route::group(['middleware' => 'permission:student'], function() {
+
+
+
+        //     Route::get('student/assignments', 'AssignmentsController@studentAssignments')->name('student_assignments');
+
+        //     Route::get('tackle/assignment/{id}', 'AssignmentsController@tackleAssignmentForm')->name('tacle_assignment_form');
+
+
+
+
+
+
+        // });
+    });
+    Route::group(['prefix' => 'lms'], function () {
+        Route::get('quiz', [QuizController::class, 'quiz']);
+        Route::get('quiz-dashboard', [QuizController::class, 'quizDashboard']);
+        Route::get('subject-teachers', [QuizController::class, 'subjectTeachers']);
+        Route::get('student-quizzes', [QuizController::class, 'studentQuizzes']);
+
+        Route::post('store-question', [QuizController::class, 'storeQuestion']);
+        Route::put('update-question/{id}', [QuizController::class, 'updateQuestion']);
+        Route::post('set-quiz', [QuizController::class, 'setQuiz']);
+        Route::put('update-quiz/{id}', [QuizController::class, 'updateQuiz']);
+        Route::put('activate-quiz/{id}', [QuizController::class, 'activateQuiz']);
+
+        Route::delete('delete-quiz/{id}', [QuizController::class, 'deleteQuiz']);
+        Route::post('attempt-quiz', [QuizController::class, 'attemptQuiz']);
+        Route::post('update-remaining-time', [QuizController::class, 'updateRemainingTime']);
+        Route::post('submit-quiz-answers', [QuizController::class, 'submitQuizAnswers']);
+        Route::post('score-theory-answers', [QuizController::class, 'scoreTheoryAnswers']);
+
+
+        Route::get('classroom', [ClassroomsController::class, 'index']);
+        Route::get('teacher-routine', [ClassroomsController::class, 'teacherRoutine']);
+
+        Route::post('create-online-class', [ClassroomsController::class, 'store']);
+        Route::delete('delete-onlineclass/{id}', [ClassroomsController::class, 'deleteOnlineclass']);
+        Route::post('upload-online-class-materials', [ClassroomsController::class, 'uploadOnlineClassMaterials']);
+
+        Route::get('create-online-class-video', [ClassroomsController::class, 'createOnlineClassVideo']);
+        Route::post('upload-online-class-video', [ClassroomsController::class, 'uploadOnlineClassVideo']);
+        Route::post('update-online-class-note', [ClassroomsController::class, 'updateOnlineClassNote']);
+
+
+
+        Route::delete('delete-onlineclass-material/{id}', [ClassroomsController::class, 'deleteOnlineclassMaterial']);
+        Route::delete('delete-onlineclass-video/{id}', [ClassroomsController::class, 'deleteOnlineclassVideo']);
+        Route::get('online-class-students/{id}', [ClassroomsController::class, 'onlineClassStudents']);
+
+        Route::get('come-online/{id}', [ClassroomsController::class, 'comeOnline']);
+        Route::post('post-in-online-class', [ClassroomsController::class, 'postInOnlineClass']);
+        Route::delete('delete-classroom-post/{id}', [ClassroomsController::class, 'deleteClassroomPost']);
+
+        Route::get('student-routine', [ClassroomsController::class, 'studentRoutine']);
+
+        Route::get('created-online-classrooms', [ClassroomsController::class, 'createdOnlineClassrooms']);
+    });
+
+    Route::group(['prefix' => 'time-table'], function () {
+        Route::get('fetch-classes', [RoutinesController::class, 'fetchClasses']);
+        Route::get('fetch-class-routine/{class_teacher_id}', [RoutinesController::class, 'fetchClassRoutine']);
+        Route::post('store', [RoutinesController::class, 'store']);
+        Route::post('update', [RoutinesController::class, 'updateRoutine']);
+        Route::delete('destroy/{routine}', [RoutinesController::class, 'destroy']);
+
+        //Route::get('fetch-level', 'AttendanceController@fetchLevelAttendanceChart');
+
+
+
+
     });
     Route::group(['prefix' => 'result'], function () {
         Route::get('set-selection-options', [ResultsController::class, 'setSelectionOptions']);

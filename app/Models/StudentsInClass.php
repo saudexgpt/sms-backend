@@ -94,14 +94,8 @@ class StudentsInClass extends Model
         $student_in_class = StudentsInClass::where([
             'school_id' => $school_id,
             'sess_id' => $sess_id,
-            //'term_id'=>$term_id,
-        ])->where(function ($query) use ($student_id) {
-
-            return $query->where('student_ids', 'like', $student_id)
-                ->orWhere('student_ids', 'like', $student_id . '~%')
-                ->orWhere('student_ids', 'like', '%~' . $student_id . '~%')
-                ->orWhere('student_ids', 'like', '%~' . $student_id);
-        })->first();
+            'student_id' => $student_id,
+        ])->first();
 
         return $student_in_class;
     }

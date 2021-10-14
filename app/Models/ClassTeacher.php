@@ -14,6 +14,10 @@ class ClassTeacher extends Model
     {
         return $this->belongsTo(School::class);
     }
+    public function routines()
+    {
+        return $this->hasMany(Routine::class);
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

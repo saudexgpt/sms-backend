@@ -540,12 +540,12 @@ function defaultGrades()
 function ratings($effort = null, $option = null)
 {
     $arr = [
-        '' => 'Select',
-        '5' => 'Excellent',
-        '4' => 'Very Good',
-        '3' => 'Good',
-        '2' => 'Average',
-        '1' => 'Fair',
+        //'' => 'Select',
+        5 => 'Excellent',
+        4 => 'Very Good',
+        3 => 'Good',
+        2 => 'Average',
+        1 => 'Fair',
     ];
 
     if ($effort && $option) {

@@ -61,7 +61,7 @@ class Assignment extends Model
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      *The return value is in array form and a foreach loop should be used to fetch each element
      */
-    public function studentAssignment()
+    public function studentAssignments()
     {
         return $this->hasMany(AssignmentStudent::class);
     }

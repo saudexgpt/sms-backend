@@ -364,10 +364,13 @@ class Controller extends BaseController
         //$session = SSession::where('is_active', '1')->first();
         //$this->this_session = $session;
         $school = $this->getSchool();
-        $session = SSession::find($school->current_session);
+        if ($school) {
+            $session = SSession::find($school->current_session);
 
-        $this->this_session = $session;
+            $this->this_session = $session;
+        }
     }
+
 
     public function getSession()
     {
@@ -390,9 +393,11 @@ class Controller extends BaseController
         //$term = Term::where('is_active', '1')->first();
         //$this->this_term = $term;
         $school = $this->getSchool();
-        $session = Term::find((int)$school->current_term);
+        if ($school) {
+            $session = Term::find((int)$school->current_term);
 
-        $this->this_term = $session;
+            $this->this_term = $session;
+        }
     }
 
     public function getTerm()
