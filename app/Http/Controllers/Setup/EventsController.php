@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Setup;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use App\Event;
-use App\News;
+use App\Models\Event;
+use App\Models\News;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 
@@ -16,14 +16,12 @@ class EventsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(News $news, Event $event)
+    public function index()
     {
         $school_id = $this->getSchool()->id;
-        $events = $event->fetchEvent($school_id);
-        $school_id = $this->getSchool()->id;
-        $news = $news->where('school_id', $school_id)->orderBy('id', 'DESC')->get();
-        //$events = $events->where('school_id', $school_id)->orderBy('id','DESC')->get();
-        return $this->render('core::events.index', compact('news', 'events'));
+        $start_of_month = date('Y-m-d', strtotime(Carbon::now()->startOfMonth()));
+        $events = Event::where('school_id', $school_id)/*->where('end', '>=', $start_of_month)*/->get();
+        return $this->render(compact('events'));
     }
     public function events()
     {
@@ -33,7 +31,7 @@ class EventsController extends Controller
     public function addEvent(Request $request)
     {
         $school_id = $this->getSchool()->id;
-        $event = Event::where(['school_id' => $school_id, 'title' => $request->title, 'start' => $request->start_date])->first();
+        $event = Event::where(['school_id' => $school_id, 'title' => $request->title, 'start' => $request->start])->first();
 
 
         if (!$event) {
@@ -42,8 +40,8 @@ class EventsController extends Controller
         $event->title = $request->title;
         $event->description = str_replace("'", "`", $request->description);
         $event->targeted_audience = implode('~', $request->targeted_audience);
-        $event->start = date('Y-m-d', strtotime($request->start_date));
-        $event->end = date('Y-m-d', strtotime($request->end_date));
+        $event->start = date('Y-m-d', strtotime($request->start));
+        $event->end = date('Y-m-d', strtotime($request->end));
 
         if ($event->start < todayDate()) {
             return response()->json([
@@ -61,9 +59,7 @@ class EventsController extends Controller
         $event->school_id = $school_id;
         $event->save();
 
-        $event_details = $event->fetchEvent($school_id, $event->id);
-
-        return $events = $event_details->getData()->events;
+        return $this->index();
     }
     public function upcomingEvents(Event $events)
     {
@@ -89,34 +85,17 @@ class EventsController extends Controller
         }
         return $this->render('core::events.upcoming_events', compact('notifications', 'user'));
     }
-    public function deleteEvent($id)
+    public function deleteEvent(Event $event)
     {
-        $school_id = $this->getSchool()->id;
-        $event = Event::find($id);
         $event->delete();
-        return $routines = $event->fetchEvent($school_id);
+        return $this->index();
     }
 
-    public function updateEvent()
+    public function updateEvent(Event $event)
     {
         $inputs = request()->all();
-        $id = $inputs['id'];
-        //$day = date('l', strtotime($inputs['day']));
-        $start = $inputs['start'];
-        $end = $inputs['end'];
-
-        //$day = schoolDaysStr($day);//from helpers fetch day number from day str
-
-
-        $event = Event::find($id);
-        $event->update([
-            'start' => $start,
-            'end'   => $end,
-            //'day'   => $day
-        ]);
-
-        /*$class_teacher_id =  $routine->class_teacher_id;
-        return $routines = $this->fetchRoutine($class_teacher_id);*/
+        $event->update($inputs);
+        return $this->index();
     }
 
     public function eventCalendar(Event $event_obj)

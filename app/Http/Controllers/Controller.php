@@ -242,7 +242,7 @@ class Controller extends BaseController
         $user = $this->getUser();
 
         //this updates the staff table with the user_id if not exist;
-        $staff = Staff::where('user_id', $user->id)->first();
+        $staff = Staff::with('user')->where('user_id', $user->id)->first();
 
 
         $this->staff = $staff;
@@ -257,9 +257,9 @@ class Controller extends BaseController
 
         $user = $this->getUser();
         if ($student_id) {
-            $student = Student::find($student_id);
+            $student = Student::with('user')->find($student_id);
         } else {
-            $student = Student::where('user_id', $user->id)->first();
+            $student = Student::with('user')->where('user_id', $user->id)->first();
         }
 
         $this->student = $student;
@@ -299,7 +299,7 @@ class Controller extends BaseController
     public function setGrades()
     {
         $school_id = $this->getSchool()->id;
-        $grades = Grade::where('school_id', $school_id)->get();
+        $grades = Grade::with('curriculumLevelGroup')->where('school_id', $school_id)->orderBy('curriculum_level_group_id')->orderBy('grade')->get();
         $this->grades = $grades;
     }
 
@@ -313,7 +313,7 @@ class Controller extends BaseController
     {
         $school_id = $this->getSchool()->id;
 
-        $grades = Grade::where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->get();
+        $grades = Grade::with('curriculumLevelGroup')->where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->orderBy('grade')->get();
         return $grades;
     }
     public function setLevels()

@@ -7,13 +7,16 @@ use App\Models\Country;
 use Illuminate\Http\Request;
 
 use App\Models\GroupOfSchool;
+use App\Models\Result;
 use App\Models\Role;
 use App\Models\School;
+use App\Models\SSession;
 use App\Models\Staff;
 use App\Models\StaffRole;
 use App\Models\User;
 use App\Models\Teacher;
 use App\Models\StaffLevel;
+use App\Models\Term;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 use Laracasts\Flash\Flash;
@@ -27,7 +30,10 @@ class StaffController extends Controller
     public function index()
     {
         $school = $this->getSchool();
-        $staff = Staff::with('user')->where('school_id', $school->id)->get();
+        $staff = Staff::with('user.roles')->where('school_id', $school->id)->get();
+        foreach ($staff as $each_staff) {
+            $each_staff->user->permissions = $each_staff->user->allPermissions();
+        }
 
         return $this->render(compact('staff'));
     }
@@ -224,5 +230,116 @@ class StaffController extends Controller
 
 
         return redirect()->route('staff.index');
+    }
+    public function staffPerformanceAnalysis(Result $result, Request $request)
+    {
+        $grades = $this->getGrades();
+        $teacher_id = $this->getStaff()->id;
+        $sess_id = $this->getSession()->id;
+        if (isset($request->sess_id) && $request->sess_id != "") {
+            $sess_id = $request->sess_id;
+        }
+        if (isset($request->teacher_id) && $request->teacher_id != "") {
+            $teacher_id = $request->teacher_id;
+        }
+        $all_sessions = SSession::orderBy('id', 'DESC')->get();
+        $selected_session = SSession::find($sess_id);
+
+        list($subject_averages, $performance_average) = $result->analyzeTeacherPerformance($teacher_id, $sess_id, $grades);
+
+        $overall_performance = [$performance_average];
+        return response()->json(compact('subject_averages', 'overall_performance', 'all_sessions', 'selected_session', 'sess_id'), 200);
+    }
+
+    public function sessionalStaffPerformance(Request $request)
+    {
+        $teacher_id = $this->getStaff()->id;
+
+        $all_sessions = SSession::orderBy('id')->get();
+        $terms = Term::orderBy('id')->get();
+        $categories = [];
+        $data = [];
+        $first_term_analysis = [];
+        $second_term_analysis = [];
+        $third_term_analysis = [];
+        $dataLabels = [
+            'enabled' => true,
+            //'rotation' => -90,
+            'color' => '#FFFFFF',
+            'align' => 'center',
+            //format: '{point.y:.1f}', // one decimal
+            'y' => 25, // 10 pixels down from the top
+            'style' => [
+                'fontSize' => '10px',
+                'fontFamily' => 'Verdana, sans-serif'
+            ]
+        ];
+        foreach ($all_sessions as $session) {
+            # code...
+            $sess_id = $session->id;
+
+            if (Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id])->count() > 1) {
+                $first_term_average = Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'term_id' => '1'])->where('exam', '!=', null)->avg('total');
+                $first_term_analysis[] = [
+                    'name' => $session->name,
+                    'y' => (float) sprintf("%01.1f", $first_term_average),
+                    //'drilldown' => $level->level . '_absent',
+
+                ];
+
+                $second_term_average = Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'term_id' => '2'])->where('exam', '!=', null)->avg('total');
+
+                $second_term_analysis[] = [
+                    'name' => $session->name,
+                    'y' => (float) sprintf("%01.1f", $second_term_average),
+                    //'drilldown' => $level->level . '_absent',
+
+                ];
+                $third_term_average = Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'term_id' => '3'])->where('exam', '!=', null)->avg('total');
+
+                $third_term_analysis[] = [
+                    'name' => $session->name,
+                    'y' => (float) sprintf("%01.1f", $third_term_average),
+                    //'drilldown' => $level->level . '_absent',
+
+                ];
+            }
+
+
+
+
+            // if($average){
+            //     $categories[] = $session->name;
+            //     $data[] = $average;
+            // }
+
+        }
+        $series = [
+            [
+                'name' => 'First Term',
+                //'colorByPoint' => true, //array format
+                'data' => $first_term_analysis,
+                //'stack' => 'student',
+                //'color' => '#00c0ef ',
+                'dataLabels' => $dataLabels
+            ],
+            [
+                'name' => 'Second Term',
+                //'colorByPoint' => true, //array format
+                'data' => $second_term_analysis,
+                //'stack' => 'student',
+                //'color' => '#00c0ef ',
+                'dataLabels' => $dataLabels
+            ],
+            [
+                'name' => 'Third Term',
+                //'colorByPoint' => true, //array format
+                'data' => $third_term_analysis,
+                //'stack' => 'student',
+                //'color' => '#00c0ef ',
+                'dataLabels' => $dataLabels
+            ],
+        ];
+        return response()->json(compact('all_sessions', 'series'), 200);
     }
 }

@@ -20,20 +20,20 @@ class UserResource extends JsonResource
         if ($this->id === $currentUser->id || $currentUser->hasRole('super')) {
             $can_edit = true;
         }
-
-        // $roles = array_map(
-        //             function ($role) {
-        //                 return $role['name'];
-        //             },
-        //             $this->roles->toArray()
-        //         );
+        $user_role = [$this->role];
+        $roles = array_map(
+            function ($role) {
+                return $role['name'];
+            },
+            $this->roles->toArray()
+        );
         // $permissions = array_map(
         //     function ($permission) {
         //         return $permission['name'];
         //     },
         //     $this->allPermissions()->toArray()
         // );
-        // $rights = array_merge($roles, $permissions);
+        $rights = array_merge($roles, $user_role);
         return [
             'id' => $this->id,
             'name' => $this->first_name . ' ' . $this->last_name,
@@ -42,15 +42,13 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'username' => $this->username,
+            'student' => $this->student,
+            'guardian' => $this->guardian,
+            'staff' => $this->staff,
             // 'address' => $this->staff->address,
             'notifications' => [],
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),
-            'roles' => array_map(
-                function ($role) {
-                    return $role['name'];
-                },
-                $this->roles->toArray()
-            ),
+            'roles' => $rights,
             // 'role' => 'admin',
             'permissions' => array_map(
                 function ($permission) {

@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 
-use App\Grade;
-use App\CurriculumLevelGroup;
+use App\Models\Grade;
+use App\Models\CurriculumLevelGroup;
 use Laracasts\Flash\Flash;
 
 class GradesController extends Controller
@@ -22,7 +22,7 @@ class GradesController extends Controller
         //
         $grades = $this->getGrades(); //Grade::where('school_id', $this->getSchool()->id)->get();
 
-        return $this->render('result::grades.index', compact('grades'));
+        return $this->render(compact('grades'));
     }
 
     /**
@@ -36,7 +36,7 @@ class GradesController extends Controller
         $school = $this->getSchool();
         $curriculum = $school->curriculum;
         $curriculum_levels = CurriculumLevelGroup::where('curriculum', $curriculum)->get();
-        return $this->render('result::grades.create', compact('curriculum_levels'));
+        return $this->render(compact('curriculum_levels'));
     }
 
     /**
@@ -48,29 +48,28 @@ class GradesController extends Controller
     public function store(Request $request)
     {
         //
-        $count = count($request->grade);
+        $grades = json_decode(json_encode($request->grades));
         $curriculum_level_group_id = $request->curriculum_level_group_id;
         $school_id = $this->getSchool()->id;
-        for ($i = 0; $i <= $count; $i++) :
-
-            if (isset($request->grade[$i])) {
+        foreach ($grades as $each_grade) :
+            $existing_grade = Grade::where(['curriculum_level_group_id' => $curriculum_level_group_id, 'school_id' => $school_id, 'grade' => $each_grade->grade])->first();
+            if (!$existing_grade) {
                 $grade = new Grade();
-                $grade->grade = $request->grade[$i];
+                $grade->grade = $each_grade->grade;
                 $grade->school_id = $school_id;
-                $grade->interpretation = $request->interpretation[$i];
-                //$grade->grade_range = $request->grade_range[$i];
-                $grade->upper_limit = $request->upper_limit[$i];
-                $grade->lower_limit = $request->lower_limit[$i];
-                $grade->grade_point = $request->grade_point[$i];
+                $grade->interpretation = $each_grade->interpretation;
+                //$grade->grade_range = $each_grade->grade_range;
+                $grade->upper_limit = $each_grade->upper_limit;
+                $grade->lower_limit = $each_grade->lower_limit;
+                $grade->grade_point = $each_grade->grade_point;
                 $grade->curriculum_level_group_id = $curriculum_level_group_id;
                 $grade->color_code = randomColorCode(); //this is from helpers in form of '#FFFFFF'
                 $grade->save();
             }
-        endfor;
+        endforeach;
 
-        return redirect()->route('grades.index');
+        return response()->json([], 200);
     }
-
     /**
      * Display the specified resource.
      *
@@ -80,6 +79,8 @@ class GradesController extends Controller
     public function show(Grade $grade)
     {
         //
+        $grade = $grade->with('curriculumLevelGroup')->find($grade->id);
+        return response()->json(compact('grade'), 200);
     }
 
     /**
@@ -106,13 +107,12 @@ class GradesController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Grade $grade)
     {
         //
-        $curriculum_level_group_id = $request->curriculum_level_group_id;
-        $grade = Grade::find($id);
+        // $curriculum_level_group_id = $request->curriculum_level_group_id;
 
-        $grade->curriculum_level_group_id = $curriculum_level_group_id;
+        // $grade->curriculum_level_group_id = $curriculum_level_group_id;
         $grade->grade = $request->grade;
         $grade->interpretation = $request->interpretation;
         //$grade->grade_range = $request->grade_range;
@@ -122,7 +122,7 @@ class GradesController extends Controller
         $grade->save();
 
 
-        return redirect()->route('grades.index');
+        return $this->show($grade);
     }
 
 
@@ -136,14 +136,6 @@ class GradesController extends Controller
     public function destroy(Grade $grade)
     {
         //
-        try {
-
-            $grade->delete();
-            Flash::success("Grade deleted successfully");
-            return redirect()->back();
-        } catch (ModelNotFoundException $ex) {
-            Flash::error('Error: ' . $ex->getMessage());
-            return redirect()->route('grades.index');
-        }
+        $grade->delete();
     }
 }

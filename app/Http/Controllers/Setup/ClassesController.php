@@ -11,6 +11,7 @@ use App\Models\Staff;
 use App\Models\StaffRole;
 use App\Models\Student;
 use App\Models\StudentsInClass;
+use App\Models\Teacher;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Laracasts\Flash\Flash;
@@ -261,24 +262,21 @@ class ClassesController extends Controller
      */
     public function getClassStudents(Request $request)
     {
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $class_teacher_id = $request->class_teacher_id;
 
-        $class_id = $request->class_id;
+        $students_in_class = StudentsInClass::with([
+            'classTeacher.subjectTeachers.subject',
+            'classTeacher.c_class',
+            'student.studentGuardian.guardian.user', 'student.user', 'classTeacher.c_class'
+        ])->where([
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+        ])->get();
 
-
-        $html = '<br><select name="student_id" class="form-control selectpicker col-lg-6" data-live-search="true" id="student_id" required>';
-        if ($class_id != "") {
-            $students = Student::where('class_id', $class_id)->get();
-
-            if ($students != "") {
-                foreach ($students as $student) :
-                    $html .= '<option value="' . $student->id . '" >' . $student->user->first_name . ' ' . $student->user->last_name . '</option>';
-                endforeach;
-            }
-        }
-
-        $html .= '</select>';
-
-        return response()->json($html);
+        return $this->render(compact('students_in_class'));
     }
 
     /**
@@ -314,5 +312,17 @@ class ClassesController extends Controller
             return ClassTeacher::find($class_teacher_id)->c_class->name;
         }
         return 'Not Assigned';
+    }
+
+    public function classTeacherClasses()
+    {
+        $teacher = new Teacher();
+
+        $staff = $this->getStaff();
+
+        $school_id = $this->getSchool()->id;
+        $class_teachers = $teacher->teacherClasses($staff->id, $school_id);
+        $teacher = $staff->user->first_name . ' ' . $staff->user->last_name;
+        return $this->render(compact('class_teachers', 'teacher'));
     }
 }

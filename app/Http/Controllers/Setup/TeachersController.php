@@ -1,24 +1,24 @@
 <?php
 
-namespace Modules\Core\Http\Controllers;
+namespace App\Http\Controllers\Setup;
 
 use App\Http\Controllers\Controller;
 
-use App\Assignment;
-use App\CClass;
-use App\Qualification;
-use App\Student;
-use App\Subject;
-use App\Staff;
-use App\Teacher;
-use App\SubjectTeacher;
-use App\ClassTeacher;
-use App\StudentsInClass;
-use App\Behavior;
-use App\Skill;
-use App\Term;
-use App\Result;
-use App\Http\Requests\TeacherRequest;
+use App\Models\Assignment;
+use App\Models\CClass;
+use App\Models\Qualification;
+use App\Models\Student;
+use App\Models\Subject;
+use App\Models\Staff;
+use App\Models\Teacher;
+use App\Models\SubjectTeacher;
+use App\Models\ClassTeacher;
+use App\Models\StudentsInClass;
+use App\Models\Behavior;
+use App\Models\Skill;
+use App\Models\Term;
+use App\Models\Result;
+use App\Http\Requests\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Laracasts\Flash\Flash;
@@ -57,11 +57,11 @@ class TeachersController extends Controller
     }
 
     /**
-     * @param TeacherRequest $request
+     * @param Request $request
      * @param Teacher $teacher
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(TeacherRequest $request, Teacher $teacher)
+    public function store(Request $request, Teacher $teacher)
     {
         $inputs = $request->all();
         $mime = $request->file('avatar')->getClientMimeType();
@@ -133,11 +133,11 @@ class TeachersController extends Controller
     }
 
     /**
-     * @param TeacherRequest $request
+     * @param Request $request
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(TeacherRequest $request, $id)
+    public function update(Request $request, $id)
     {
         try {
             $teacher = Teacher::findOrFail($id);
@@ -205,10 +205,10 @@ class TeachersController extends Controller
     public function assignments(Assignment $assign)
     {
         $assignments = Assignment::join('subject_teachers', 'assignments.subject_teacher_id', '=', 'subject_teachers.id')
-        ->where('assignments.school_id', $this->getSchool()->id)
-        ->orderBy('assignments.id','DESC')
-        ->select('assignments.id','subject_teachers.id as subject_teacher_id', 'deadline','download_link', 'is_marked', 'assignments.created_at')
-        ->get();
+            ->where('assignments.school_id', $this->getSchool()->id)
+            ->orderBy('assignments.id', 'DESC')
+            ->select('assignments.id', 'subject_teachers.id as subject_teacher_id', 'deadline', 'download_link', 'is_marked', 'assignments.created_at')
+            ->get();
         $assignments = $assign->teacherAssignmentsDetails($assignments);
         return $this->render('core::teachers.assignments', compact('assignments'));
     }
@@ -217,7 +217,7 @@ class TeachersController extends Controller
     {
         $request = request()->all();
         $dashboard_view = 0;
-        if(isset($request['dashboard']) && $request['dashboard'] == '1'){
+        if (isset($request['dashboard']) && $request['dashboard'] == '1') {
             $dashboard_view = 1;
         }
         $teacher = new Teacher();
@@ -237,100 +237,95 @@ class TeachersController extends Controller
 
         $school_id = $this->getSchool()->id;
         $details = $teacher->teacherSubjects($id, $school_id);
-        foreach ( $details as $detail )
-        {
-//
-            $student_ids = StudentsInClass::where( 'class_teacher_id', $detail->class_teacher_id )->pluck( 'student_ids')->first();
-            $ids = explode( "~", $student_ids );
+        foreach ($details as $detail) {
+            //
+            $student_ids = StudentsInClass::where('class_teacher_id', $detail->class_teacher_id)->pluck('student_ids')->first();
+            $ids = explode("~", $student_ids);
 
-            $count_student = count( $ids );// - 1;
+            $count_student = count($ids); // - 1;
             $detail->student_count = $count_student;
-
         }
-        $subjects = $this->getStudents( $id );
+        $subjects = $this->getStudents($id);
         return $this->render('core::teachers.subjects', compact('details', 'subjects'));
     }
 
-    private function getAnalysis( $subject_id )
+    private function getAnalysis($subject_id)
     {
-        $terms = Term::select( 'name', 'id' )->get();
+        $terms = Term::select('name', 'id')->get();
         $this->good = 0;
         $results = array();
-        foreach ( $terms as $term )
-        {
+        foreach ($terms as $term) {
             $result = array();
-            $result[ 'name' ] = $term->name;
-            $result[ 'average' ] = Result::where( 'term_id', $term->id )
-                                ->where( 'subject_teacher_id', $subject_id )
-                                ->avg( 'total' );
+            $result['name'] = $term->name;
+            $result['average'] = Result::where('term_id', $term->id)
+                ->where('subject_teacher_id', $subject_id)
+                ->avg('total');
 
-            $result[ 'average' ] = $result[ 'average' ] == null ? 0 : $result[ 'average' ];
+            $result['average'] = $result['average'] == null ? 0 : $result['average'];
 
-            Result::where( 'term_id', $term->id )
-                    ->where( 'subject_teacher_id', $subject_id )
-                    ->each(
-                        function( $item, $key ) use ($result) {
-                            if  ( $item[ 'total' ] > $result[ 'average' ] ){
-                                $this->good += 1;
-                            }
-                            return true;
+            Result::where('term_id', $term->id)
+                ->where('subject_teacher_id', $subject_id)
+                ->each(
+                    function ($item, $key) use ($result) {
+                        if ($item['total'] > $result['average']) {
+                            $this->good += 1;
                         }
-                    );
-            array_push( $results, $result );
+                        return true;
+                    }
+                );
+            array_push($results, $result);
         }
         return $results;
     }
 
     private $good = 0;
 
-    function analyse( $totals )
+    function analyse($totals)
     {
         $result = array();
         $fails = 0;
         $least = $this->getLeastGrade();
-        if ( $totals->count() == 0 )
-            return [ 'average' => 0, 'fails' => 0 ];
+        if ($totals->count() == 0)
+            return ['average' => 0, 'fails' => 0];
         $sum = 0;
-        foreach( $totals as $total )
-        {
-            if ( $total <= $least )
+        foreach ($totals as $total) {
+            if ($total <= $least)
                 $fails += 1;
 
             $sum += $total;
         }
-        $result[ 'average' ] = $sum / $totals->count();
-        $result[ 'fails' ] = $fails;
+        $result['average'] = $sum / $totals->count();
+        $result['fails'] = $fails;
         return $result;
     }
 
     function getLeastGrade()
     {
-//        ->take( 1 )->get()->pluck("grade_range");
-//        $range = Grade::all()->sortBy( 'grade_point' )
-        $range = Grade::all()->sortBy( 'grade_point' )->take( 1 )->pluck( 'grade_range' );
-        $ranges = explode( '-', $range );
-        return $ranges[ 1 ];
-//        return 0;
+        //        ->take( 1 )->get()->pluck("grade_range");
+        //        $range = Grade::all()->sortBy( 'grade_point' )
+        $range = Grade::all()->sortBy('grade_point')->take(1)->pluck('grade_range');
+        $ranges = explode('-', $range);
+        return $ranges[1];
+        //        return 0;
     }
 
-    function average( $totals )
+    function average($totals)
     {
-        if ( $totals->count() == 0 )
+        if ($totals->count() == 0)
             return 0;
         $sum = 0;
-        foreach( $totals as $total )
+        foreach ($totals as $total)
             $sum += $total;
         return $sum / $totals->count();
     }
 
-    private function getStudents( $id )
+    private function getStudents($id)
     {
         $subjects = array();
         $teacher = new Teacher();
         $school_id = $this->getSchool()->id;
         $details = $teacher->teacherSubjects($id, $school_id);
-        foreach ( $details as $detail )
-        {
+        foreach ($details as $detail) {
             if ($detail->subject) {
                 $student_ids = StudentsInClass::where('class_teacher_id', $detail->class_teacher_id)
                     ->pluck('student_ids')->first();
@@ -344,10 +339,10 @@ class TeachersController extends Controller
                 $subject['student_count'] = count($ids) - 1;
                 array_push($subjects, $subject);
             }
-//          $class_teacher_id = SubjectTeacher::where( 'teacher_id', '=', $id )->where( 'subject_id', '=', $subject->id )->pluck( 'class_teacher_id' )->first();
+            //          $class_teacher_id = SubjectTeacher::where( 'teacher_id', '=', $id )->where( 'subject_id', '=', $subject->id )->pluck( 'class_teacher_id' )->first();
 
         }
-//        dd( $subjects );
+        //        dd( $subjects );
         return $subjects;
     }
 
@@ -365,12 +360,12 @@ class TeachersController extends Controller
 
         $class = ClassTeacher::find($id)->c_class;
 
-        list($student_ids_arr,$students) = $teacher->teacherClassStudents($id,$sess_id,$term_id,$school_id);
+        list($student_ids_arr, $students) = $teacher->teacherClassStudents($id, $sess_id, $term_id, $school_id);
 
-        if (isset($request['view_only']) && $request['view_only'] =='1') {
-            return $this->render('core::teachers.class_students_views', compact('students','class', 'id', 'sesssion_name'));
+        if (isset($request['view_only']) && $request['view_only'] == '1') {
+            return $this->render('core::teachers.class_students_views', compact('students', 'class', 'id', 'sesssion_name'));
         }
-        return $this->render('core::teachers.class_students', compact('students','class', 'id', 'sesssion_name', 'sess_id', 'term_id'));
+        return $this->render('core::teachers.class_students', compact('students', 'class', 'id', 'sesssion_name', 'sess_id', 'term_id'));
     }
 
     public function subjectStudents($subject_teacher_id)
@@ -385,7 +380,7 @@ class TeachersController extends Controller
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $school_id = $this->getSchool()->id;
-        list($student_ids_arr,$students) = $teacher->teacherSubjectStudents($class_teacher_id,$sess_id,$term_id,$school_id);
+        list($student_ids_arr, $students) = $teacher->teacherSubjectStudents($class_teacher_id, $sess_id, $term_id, $school_id);
         /*return $students;
         $student_array = [];
         foreach ($subject_class_students as $student) :
@@ -397,7 +392,7 @@ class TeachersController extends Controller
 
         endforeach;*/
 
-        return $this->render('core::teachers.subject_students', compact('students', 'class','subject_teacher'));
+        return $this->render('core::teachers.subject_students', compact('students', 'class', 'subject_teacher'));
     }
 
     public function teachers()

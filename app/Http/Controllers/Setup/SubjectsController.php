@@ -15,6 +15,7 @@ use App\Models\Level;
 use App\Models\Material;
 use App\Models\Staff;
 use App\Models\StaffRole;
+use App\Models\StudentsInClass;
 use App\Models\StudentsOfferingSubject;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
@@ -320,5 +321,16 @@ class SubjectsController extends Controller
         //return 'success';
 
         return redirect()->route('teacher_subject_students', ['subject' => $subject, 'class' => $class, 'id' => $subject_teacher_id]);
+    }
+    public function subjectTeachersSubjects()
+    {
+        $teacher = new Teacher();
+
+        $staff = $this->getStaff();
+
+        $school_id = $this->getSchool()->id;
+        $subject_teachers = $teacher->teacherSubjects($staff->id, $school_id);
+        $teacher = $staff->user->first_name . ' ' . $staff->user->last_name;
+        return $this->render(compact('subject_teachers', 'teacher'));
     }
 }

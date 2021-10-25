@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Staff;
 use Validator;
 use App\Http\Resources\UserResource;
 
@@ -115,6 +116,10 @@ class AuthController extends Controller
         }
 
         $user = $request->user();
+        return $this->generateAuthorizationKey($user);
+    }
+    private function generateAuthorizationKey($user)
+    {
         $user_resource = new UserResource($user);
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->plainTextToken;
@@ -140,12 +145,43 @@ class AuthController extends Controller
      *
      * @return [string] message
      */
+    // public function logout(Request $request)
+    // {
+    //     $request->user()->tokens()->delete();
+
+    //     return response()->json([
+    //         'message' => 'Successfully logged out'
+    //     ]);
+    // }
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        //return $request;
+        // $this->guard()->logout();
 
+        // $request->session()->invalidate();
+        $request->user()->tokens()->delete();
+        if (isset($request->school_id)) {
+            $school_id = $request->school_id;
+            $admin_role_id = 1;
+            //$school = School::find($school_id);
+
+            $staff = Staff::join('role_user', 'role_user.user_id', '=', 'staff.user_id')->where(['staff.school_id' => $school_id, 'role_user.role_id' => $admin_role_id])->first();
+
+
+            $user = $staff->user;
+            return $this->generateAuthorizationKey($user);
+        }
+        if (isset($request->user_id)) {
+
+            $user = User::find($request->user_id);
+            return $this->generateAuthorizationKey($user);
+            // if (Auth::loginUsingId($user_id)) {
+            //     // Authentication passed...
+            //     return redirect()->intended('dashboard');
+            // }
+        }
         return response()->json([
-            'message' => 'Successfully logged out'
+            'message' => 'success'
         ]);
     }
 }

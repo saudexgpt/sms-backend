@@ -14,6 +14,7 @@ use App\Models\ClassTeacher;
 use App\Models\School;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\StudentsInClass;
 
 class AttendanceController extends Controller
 {
@@ -25,10 +26,19 @@ class AttendanceController extends Controller
     public function classes()
     {
         $school_id = $this->getSchool()->id;
+        $user = $this->getUser();
+        if (in_array('teacher', $user->roles)) {
 
-        $id = $this->getStaff()->id;
+            $id = $this->getStaff()->id;
+            $class_teachers = ClassTeacher::with(['level', 'c_class'])->where(['teacher_id' => $id, 'school_id' => $school_id])->get();
+        } else if (in_array('student', $user->roles)) {
 
-        $class_teachers = ClassTeacher::with(['level', 'c_class'])->where(['teacher_id' => $id, 'school_id' => $school_id])->get();
+            $id = $this->getStudent()->id;
+            $student_in_class = StudentsInClass::with(['classTeacher.level', 'classTeacher.c_class'])->where(['student_id' => $id, 'school_id' => $school_id])->orderBy('id', 'DESC')->first();
+            $class_teachers = [$student_in_class->classTeacher];
+        } else {
+            $class_teachers = ClassTeacher::with(['level', 'c_class'])->where(['school_id' => $school_id])->get();
+        }
 
         return $this->render(compact('class_teachers'));
     }

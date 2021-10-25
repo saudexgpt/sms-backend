@@ -7,15 +7,23 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CurriculumCategoryController;
+use App\Http\Controllers\DashboardsController;
 use App\Http\Controllers\LMS\ClassroomsController;
 use App\Http\Controllers\LMS\QuizController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\Result\GradesController;
 use App\Http\Controllers\Result\ResultsController;
+use App\Http\Controllers\SchoolsController;
 use App\Http\Controllers\Setup\ClassesController;
+use App\Http\Controllers\Setup\EventsController;
 use App\Http\Controllers\Setup\LevelsController;
+use App\Http\Controllers\Setup\PermissionsController;
+use App\Http\Controllers\Setup\RolesController;
 use App\Http\Controllers\Setup\SectionsController;
 use App\Http\Controllers\Setup\SessionsController;
 use App\Http\Controllers\Setup\SubjectsController;
 use App\Http\Controllers\Setup\TermsController;
+use App\Http\Controllers\Setup\TimelinesController;
 use App\Http\Controllers\TimeTable\RoutinesController;
 use App\Http\Controllers\Users\GuardiansController;
 use App\Http\Controllers\Users\StudentsController;
@@ -45,12 +53,51 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('user', [AuthController::class, 'user']); //->middleware('permission:read-users');
     });
 });
+Route::group(['prefix' => 'school'], function () {
+    Route::post('register', [SchoolsController::class, 'potentialSchool']);
+});
 
 //////////////////////////////// APP APIS //////////////////////////////////////////////
 Route::group(['middleware' => 'auth:sanctum'], function () {
+
     // Protected routes for authenticated users
     Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
+
+    // Access Control Roles & Permission
+    Route::group(['prefix' => 'acl'], function () {
+        Route::get('roles/index', [RolesController::class, 'index']);
+        Route::post('roles/save', [RolesController::class, 'store']);
+        Route::put('roles/update/{role}', [RolesController::class, 'update']);
+        Route::post('roles/assign', [RolesController::class, 'assignRoles']);
+
+        Route::get('permissions/index', [PermissionsController::class, 'index']);
+        Route::post('permissions/assign-user', [PermissionsController::class, 'assignUserPermissions']);
+        Route::post('permissions/assign-role', [PermissionsController::class, 'assignRolePermissions']);
+    });
+
+    //////////////////////DASHBOARD//////////////////////////
+    Route::group(['prefix' => 'dashboard'], function () {
+        Route::get('admin', [DashboardsController::class, 'adminDashboard']);
+        Route::get('student', [DashboardsController::class, 'studentDashboard']);
+        Route::get('teacher', [DashboardsController::class, 'teacherDashboard']);
+    });
+
+    ///////////////////EVENTS/////////////////////////////////
+    Route::group(['prefix' => 'events'], function () {
+
+        Route::get('/', [EventsController::class, 'index']);
+        Route::post('add-event', [EventsController::class, 'addEvent']);
+        Route::delete('delete/{event}', [EventsController::class, 'deleteEvent']);
+        Route::put('update/{event}', [EventsController::class, 'updateEvent']);
+    });
+
+
+    Route::group(['prefix' => 'report'], function () {
+
+        Route::get('display-chart', [ReportsController::class, 'displayReportChart']);
+        Route::get('attendance-report', [ReportsController::class, 'attendanceReport']);
+    });
 
     Route::group(['prefix' => 'curriculum'], function () {
         Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
@@ -172,20 +219,47 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('created-online-classrooms', [ClassroomsController::class, 'createdOnlineClassrooms']);
     });
 
+    Route::group(['prefix' => 'teacher'], function () {
+        Route::get('sessional-staff-performance', [StaffController::class, 'sessionalStaffPerformance']);
+        Route::get('performance-analysis', [StaffController::class, 'staffPerformanceAnalysis']);
+        // Route::get('fetch-school-teachers', 'StaffController@fetchSchoolTeachers');
+        // Route::get('set-staff-level-category', 'StaffController@setStaffLevelCategory');
+        // Route::get('details/{id}', 'StaffController@show');
+        // Route::get('performance-analysis', 'StaffController@staffPerformanceAnalysis');
+        // Route::get('sessional-staff-performance', 'StaffController@sessionalStaffPerformance');
+
+        // Route::post('new-staff', 'StaffController@store');
+    });
+
+    Route::group(['prefix' => 'timeline'], function () {
+        Route::get('/', [TimelinesController::class, 'index']);
+        Route::post('store', [TimelinesController::class, 'store']);
+        Route::post('post-comment', [TimelinesController::class, 'postComment']);
+
+        //Route::get('fetch-level', 'AttendanceController@fetchLevelAttendanceChart');
+
+
+    });
+
+
     Route::group(['prefix' => 'time-table'], function () {
         Route::get('fetch-classes', [RoutinesController::class, 'fetchClasses']);
         Route::get('fetch-class-routine/{class_teacher_id}', [RoutinesController::class, 'fetchClassRoutine']);
         Route::post('store', [RoutinesController::class, 'store']);
         Route::post('update', [RoutinesController::class, 'updateRoutine']);
         Route::delete('destroy/{routine}', [RoutinesController::class, 'destroy']);
-
+        Route::get('student/class-time-table', [RoutinesController::class, 'classTimeTable']);
+        Route::get('teacher/time-table', [RoutinesController::class, 'teacherTimeTable']);
         //Route::get('fetch-level', 'AttendanceController@fetchLevelAttendanceChart');
-
-
 
 
     });
     Route::group(['prefix' => 'result'], function () {
+        Route::resource('grades', GradesController::class);
+
+        // Route::post('grades/store', GradesController::class, 'store');
+
+
         Route::get('set-selection-options', [ResultsController::class, 'setSelectionOptions']);
         Route::get('student-selection-options', [ResultsController::class, 'studentSelectionOptions']);
         Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudent']);
@@ -220,14 +294,18 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::resource('classes', ClassesController::class);
         Route::post('class/assign-teacher', [ClassesController::class, 'assignClassTeacher']);
 
-        Route::resource('sections', SectionsController::class);
+        Route::get('class-teacher-class', [ClassesController::class, 'classTeacherClasses']);
 
+        Route::resource('sections', SectionsController::class);
         Route::resource('subjects', SubjectsController::class);
         Route::get('fetch-teacher-subject', [SubjectsController::class, 'fetchTeacherSubject']);
         Route::put('assign-subject/{subject_teacher}', [SubjectsController::class, 'assignSubject']);
 
         Route::post('session/activate', [SessionsController::class, 'activate']);
         Route::post('term/activate', [TermsController::class, 'activate']);
+
+        Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
+        Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
     });
     Route::group(['prefix' => 'user-setup'], function () {
         Route::get('all-students-table', [StudentsController::class, 'allStudentsTable']);

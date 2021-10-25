@@ -1,37 +1,36 @@
 <?php
 
-namespace Modules\Core\Http\Controllers;
+namespace App\Http\Controllers;
 
-use App\Alumni;
-use App\Http\Controllers\Controller;
-use App\Grade;
-use App\Guardian;
-use App\Medical;
-use App\Remark;
-use App\Result;
-use App\Routine;
-use App\School;
-use App\PotentialSchool;
-use App\Student;
-use App\StudentsInClass;
-use App\ClassTeacher;
-use App\SubjectTeacher;
-use App\ClassActivity;
-use App\Teacher;
-use App\Term;
-use App\User;
-use App\Staff;
-use App\ClassAttendance;
-use App\AuditTrail;
-use App\News;
-use App\Event;
-use App\GroupOfSchool;
-use App\PartnerSchool;
+use App\Models\Alumni;
+use App\Models\Grade;
+use App\Models\Guardian;
+use App\Models\Medical;
+use App\Models\Remark;
+use App\Models\Result;
+use App\Models\Routine;
+use App\Models\School;
+use App\Models\PotentialSchool;
+use App\Models\Student;
+use App\Models\StudentsInClass;
+use App\Models\ClassTeacher;
+use App\Models\SubjectTeacher;
+use App\Models\ClassActivity;
+use App\Models\Teacher;
+use App\Models\Term;
+use App\Models\User;
+use App\Models\Staff;
+use App\Models\ClassAttendance;
+use App\Models\AuditTrail;
+use App\Models\News;
+use App\Models\Event;
+use App\Models\GroupOfSchool;
+use App\Models\PartnerSchool;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Laracasts\Flash\Flash;
 
-class PagesController extends Controller
+class DashboardsController extends Controller
 {
     /**
      * This manages privileges based on roles
@@ -197,7 +196,90 @@ class PagesController extends Controller
         }
     }
 
+    public function adminDashboard()
+    {
+        $user = $this->getUser();
+        $today = Carbon::now();
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+        $total_students = Student::ActiveAndSuspended()->where(['school_id' => $school_id])->count();
+        $active_students = Student::ActiveStudentOnly()->where(['school_id' => $school_id])->count();
+        $suspended_students = Student::SuspendedStudentOnly()->where(['school_id' => $school_id])->count();
+        $withdrawn_students = Student::WithdrawnStudentOnly()->where(['school_id' => $school_id])->count();
+        $alumni = Alumni::where(['school_id' => $school_id])->count();
 
+        $active_male = Student::ActiveStudentOnly()->join('users', 'users.id', 'students.user_id')
+            ->where(['students.school_id' => $school_id, 'users.gender' => 'male'])->count();
+
+        $active_female = Student::ActiveStudentOnly()->join('users', 'users.id', 'students.user_id')
+            ->where(['students.school_id' => $school_id, 'users.gender' => 'female'])->count();
+
+        $totalStaff = Staff::where(['school_id' => $school_id])->count();
+        $totalGuardian = Guardian::where('school_id', $school_id)->count();
+
+        $activities = AuditTrail::where('school_id', $school_id)->where('created_at', '>', $today->startOfWeek())->orderBy('id', 'DESC')->get();
+
+        return $this->render(compact('total_students', 'active_students', 'active_male', 'active_female', 'suspended_students', 'withdrawn_students', 'alumni', 'totalStaff', 'totalGuardian', 'activities', 'user'));
+    }
+
+    public function studentDashboard()
+    {
+        $school = $this->getSchool();
+        $student = $this->getStudent();
+
+        $student_class = StudentsInClass::where(['school_id' => $school->id, 'student_id' => $student->id])->orderby('id', 'DESC')->first();
+
+        $total_in_class = StudentsInClass::where(['school_id' => $school->id, 'sess_id' => $student_class->sess_id, 'class_teacher_id' => $student_class->class_teacher_id])->count();
+
+        $subject_teachers = $student_class->classTeacher->subjectTeachers()->with('subject')->get();
+        $current_class = $student_class->classTeacher->c_class->name;
+        $class_teacher = $student_class->classTeacher->staff->user;
+        $resultObj = new Result();
+        $cum_performances = $resultObj->studentCummulativePerformance($student->id);
+        $performance_data = [];
+        $count = 0;
+        $total_performance = 0;
+        $average_performance = 0;
+        foreach ($cum_performances as $performance) {
+            $average = sprintf("%01.2f", $performance['average']);
+            $performance_data[] = $average;
+            $total_performance += $average;
+            if ($average > 0) {
+                $count++;
+            }
+        }
+        if ($count > 0) {
+
+            $average_performance = sprintf("%01.2f", $total_performance / $count);
+        }
+        // $student_in_class =  StudentsInClass::where('student_id', $id)->orderBy('id', 'DESC')->first();
+        // $student = $stud->getStudentDetails($id, $student_in_class->class_teacher_id);
+        // $class_mates = StudentsInClass::where(['class_teacher_id'=>$student_in_class->class_teacher_id, 'school_id'=>$this->getSchool()->id, 'sess_id' => $this->getSession()->id])->get();
+        // $teachers = Staff::where('school_id', $this->getSchool()->id)->get();
+
+        // $performance = 0;
+        return  response()->json(compact('student', 'subject_teachers', 'performance_data', 'average_performance', 'total_in_class', 'current_class', 'class_teacher'), 200);
+    }
+    public function teacherDashboard()
+    {
+        $routine_obj = new Routine();
+        $teacher = new Teacher();
+        $school = $this->getSchool();
+        $staff = $this->getStaff();
+        $class_activities = [];
+        $class_teachers =  ClassTeacher::where(['school_id' => $school->id, 'teacher_id' => $staff->id])->get();
+        foreach ($class_teachers as $class_teacher) {
+            $class_activities = $class_teacher->classActivity()->orderBy('id', "DESC")->get();
+        }
+
+
+        // alex
+        // $subjects = $this->getStudents($staff->id);
+        $subject_teachers = $teacher->teacherSubjects($staff->id, $school->id);
+
+        return $this->render(compact('staff', 'class_activities', 'class_teachers', 'subject_teachers'));
+    }
 
     public function roleDashboard($role)
     {
@@ -365,10 +447,11 @@ class PagesController extends Controller
         $teacher = new Teacher();
 
         $id = $this->getStaff()->id;
+        $school_id = $this->getSchool()->id;
 
-        $details = $teacher->teacherClasses($id);
+        $classes = $teacher->teacherClasses($id, $school_id);
 
-        return $details;
+        return $classes;
     }
 
     private function getRoutines($id)

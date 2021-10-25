@@ -2,19 +2,19 @@
 
 namespace Modules\Core\Http\Controllers;
 
-use App\ClassAttendance;
-use App\ClassTeacher;
-use App\SubjectTeacher;
-use App\StudentsInClass;
-use App\ResultAction;
-use App\Result;
-use App\Level;
-use App\Student;
-use App\SSession;
-use App\CClass;
-use App\Teacher;
-use App\Grade;
-use App\IncomeAndExpense;
+use App\Models\ClassAttendance;
+use App\Models\ClassTeacher;
+use App\Models\SubjectTeacher;
+use App\Models\StudentsInClass;
+use App\Models\ResultAction;
+use App\Models\Result;
+use App\Models\Level;
+use App\Models\Student;
+use App\Models\SSession;
+use App\Models\CClass;
+use App\Models\Teacher;
+use App\Models\Grade;
+use App\Models\IncomeAndExpense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -809,7 +809,7 @@ class ReportsController extends Controller
 
 
 
-        return $this->render('core::reports.student_attendance_report', compact('attendances', 'class', 'percentage_present', 'percentage_absent', 'no_of_days_in_month', 'date', 'attendance_class_id', 'student', 'marked_student_array', 'day', 'chart_only'));
+        return $this->render(compact('attendances', 'class', 'percentage_present', 'percentage_absent', 'no_of_days_in_month', 'date', 'attendance_class_id', 'student', 'marked_student_array', 'day', 'chart_only'));
     }
 
     public function analyseClassResult()

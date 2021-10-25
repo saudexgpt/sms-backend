@@ -167,8 +167,13 @@ class ResultsController extends Controller
         $sub_term = $request->sub_term;
 
         $subject_teacher = SubjectTeacher::with('subject')->find($subject_teacher_id);
-        $class_teacher_id = $subject_teacher->class_teacher_id;
-        $class = CClass::find($subject_teacher->classTeacher->class_id);
+
+        $class_teacher = $subject_teacher->classTeacher;
+        $class_teacher_id = $class_teacher->id;
+        $class = CClass::find($class_teacher->class_id);
+        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
+
         $teacher_id = $this->getStaff()->id;
 
         if ($subject_teacher->teacher_id != $teacher_id) {
@@ -192,14 +197,11 @@ class ResultsController extends Controller
         $action_result = $result_action_obj->performResultAction($school_id, $subject_teacher_id, $sess_id);
 
         $result_actions = $action_result->$term_action;
-        list($edit_ca1, $edit_ca2, $edit_ca3, $edit_exam) = $result->getAllResultActions($result_actions);
+        list($edit_midterm, $edit_ca1, $edit_ca2, $edit_ca3, $edit_exam) = $result->getAllResultActions($result_actions);
 
         $result_action_array = $result->resultStatusAction($result_actions);
 
         $active_assessment = $sub_term;
-
-        //fetch the result grades details set by the school admin
-        $grades = $this->getGrades(); //Grade::where('school_id', $school_id)->get();//Grade::all();
 
         $class_students = $teacher->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
 
@@ -214,13 +216,14 @@ class ResultsController extends Controller
                 //check whether any record exits for this subject and student if not create one
                 $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
+                $mid_term = $result_detail->mid_term / 10;
                 $ca1 = $result_detail->ca1;
                 $ca2 = $result_detail->ca2;
                 $ca3 = $result_detail->ca3;
 
 
 
-                $result_detail->test = $result->addScores($ca1, $ca2, $ca3);
+                $result_detail->test = $result->addScores($mid_term, $ca1, $ca2, $ca3);
 
                 $student->result_detail = $result_detail;
 
@@ -233,7 +236,7 @@ class ResultsController extends Controller
         }
         $subject_teacher->empty_half_record = $empty_half_record;
         $subject_teacher->empty_full_record = $empty_full_record;
-        $data = compact('students', 'subject_teacher_id', 'active_assessment', 'edit_ca1', 'edit_ca2', 'edit_ca3', 'edit_exam', 'result_action_array', 'subject_teacher', 'class', 'term_id', 'sess_id');
+        $data = compact('students', 'subject_teacher_id', 'active_assessment', 'edit_midterm', 'edit_ca1', 'edit_ca2', 'edit_ca3', 'edit_exam', 'result_action_array', 'subject_teacher', 'class', 'term_id', 'sess_id');
 
         $csv = false;
         if (isset($request->csv) && ($request->csv == 'true')) {
@@ -322,17 +325,18 @@ class ResultsController extends Controller
         $student_result_detail->$label = $score;
         //0$result_detail->save();
 
+        $mid_term = $student_result_detail->mid_term / 10; // we convert mid_term from 100 to over 10
         $ca1 = $student_result_detail->ca1;
         $ca2 = $student_result_detail->ca2;
         $ca3 = $student_result_detail->ca3;
         $exam = $student_result_detail->exam;
 
-        $test = $result->addScores($ca1, $ca2, $ca3);
+        $test = $result->addScores($mid_term, $ca1, $ca2, $ca3);
 
         //add the total and save
         $total = $result->addScores($test, $exam);
 
-        if (($label == 'ca3' && $student_result_detail->total != "") || $label == 'exam') {
+        if ($label != 'mid_term') {
             $student_result_detail->comments = defaultComment($total);
         }
         $student_result_detail->total = $total;
@@ -352,13 +356,14 @@ class ResultsController extends Controller
                 //check whether any record exits for this subject and student if not create one
                 $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
+                $mid_term = $result_detail->mid_term / 10;
                 $ca1 = $result_detail->ca1;
                 $ca2 = $result_detail->ca2;
                 $ca3 = $result_detail->ca3;
 
 
 
-                $result_detail->test = $result->addScores($ca1, $ca2, $ca3);
+                $result_detail->test = $result->addScores($mid_term, $ca1, $ca2, $ca3);
 
                 $student->result_detail = $result_detail;
 
@@ -421,21 +426,21 @@ class ResultsController extends Controller
                         //check whether this student has his result recorded
                         $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
+                        $result_detail->mid_term = trim($csvRow['MID_TERM']);
                         $result_detail->ca1 = trim($csvRow['CA_1']);
-
                         $result_detail->ca2 = trim($csvRow['CA_2']);
                         $result_detail->ca3 = trim($csvRow['CA_3']);
                         $result_detail->exam = trim($csvRow['EXAM']);
                         $result_detail->effort = trim($csvRow['ACADEMIC_EFFORT']);
                         $result_detail->behavior = trim($csvRow['CLASS_BEHAVIOUR']);
 
-
+                        $mid_term = $result_detail->mid_term / 10;
                         $ca1 = $result_detail->ca1;
                         $ca2 = $result_detail->ca2;
                         $ca3 = $result_detail->ca3;
                         $exam = $result_detail->exam;
 
-                        $test = $result->addScores($ca1, $ca2, $ca3);
+                        $test = $result->addScores($mid_term, $ca1, $ca2, $ca3);
 
                         //add the total and save
                         $result_detail->total = $result->addScores($test, $exam);
@@ -521,11 +526,11 @@ class ResultsController extends Controller
             // $result_actions = $action_res->performResultAction($school_id, $id, $sess_id, $term_action);
             $result_obj = new Result();
             $result_actions = $action_result->$term_action;
-            list($edit_ca1, $edit_ca2, $edit_ca3, $edit_exam) = $result_obj->getAllResultActions($result_actions);
+            list($edit_midterm, $edit_ca1, $edit_ca2, $edit_ca3, $edit_exam) = $result_obj->getAllResultActions($result_actions);
 
             $result_action_array = $result_obj->resultStatusAction($result_actions);
 
-            return response()->json(compact('edit_ca1', 'edit_ca2', 'edit_ca3', 'edit_exam', 'result_action_array'));
+            return response()->json(compact('edit_midterm', 'edit_ca1', 'edit_ca2', 'edit_ca3', 'edit_exam', 'result_action_array'));
             // return '<h4><div class="label label-success">Action Successful</div></h4>';
         }
         return '<h4><div class="label label-danger">Action Failed</div></h4>';
@@ -585,6 +590,8 @@ class ResultsController extends Controller
         $class_name = $class_teacher->c_class->name;
 
         $school_id = $this->getSchool()->id;
+        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
         $sess_id = $request->sess_id;
         $term_id = $request->term_id;
         $sub_term = $request->sub_term;
@@ -613,7 +620,7 @@ class ResultsController extends Controller
                     'sess_id' => $sess_id,
                     'term' => $term_id,
                     'sub_term' => $sub_term,
-                    'grades' => $this->getGrades(),
+                    'grades' => $grades,
                 ];
                 $student_result = $result->analyseStudentsResult($student_in_class->student, $options);
 
@@ -766,8 +773,9 @@ class ResultsController extends Controller
             $view_others = 1;
         }
 
-
-        $grades = $this->getGrades(); //Grade::where('school_id', $school_id)->get();//Grade::all();
+        $class_teacher = ClassTeacher::find($class_teacher_id);
+        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
         $options = [
             'class_teacher_id' => $class_teacher_id,
             'school_id' => $school_id,
@@ -881,7 +889,8 @@ class ResultsController extends Controller
 
         $subject_teachers = SubjectTeacher::with(['subject', 'staff.user'])->where('class_teacher_id', $class_teacher_id)->where('teacher_id', '!=', NULL)->get();
 
-        $grades = $this->getGrades(); //Grade::all();
+        $curriculum_level_group_id = $class_details->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
 
         $cant_approve = 0;
         if ($subject_teachers->isNotEmpty()) {
@@ -952,13 +961,14 @@ class ResultsController extends Controller
                         //check whether any record exits for this subject and student if not create one
                         $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
+                        $mid_term = $result_detail->mid_term / 10;
                         $ca1 = $result_detail->ca1;
                         $ca2 = $result_detail->ca2;
                         $ca3 = $result_detail->ca3;
 
 
 
-                        $result_detail->test = $result->addScores($ca1, $ca2, $ca3);
+                        $result_detail->test = $result->addScores($mid_term, $ca1, $ca2, $ca3);
 
                         $student->result_detail = $result_detail;
 
@@ -991,7 +1001,8 @@ class ResultsController extends Controller
 
         $class_details = ClassTeacher::find($class_teacher_id);
 
-        $grades = $this->getGrades(); //Grade::all();
+        $curriculum_level_group_id = $class_details->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
 
         $result_details = Result::where([
             'subject_teacher_id' => $subject_teacher_id,
@@ -1063,6 +1074,9 @@ class ResultsController extends Controller
         $class_teacher_id = $request->class_teacher_id;
         $class_teacher = ClassTeacher::find($class_teacher_id);
 
+        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $grades = $this->getLevelGrades($curriculum_level_group_id);
+
         $school_id = $this->getSchool()->id;
         $sess_id = $request->sess_id;
         $term_id = $request->term_id;
@@ -1089,7 +1103,6 @@ class ResultsController extends Controller
             $class_average_colors = [];
             $student_average_colors = [];
             $name = [];
-            $grades = $this->getGrades();
             $options = [
                 'class_teacher_id' => $class_teacher_id,
                 'school_id' => $school_id,

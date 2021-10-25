@@ -153,14 +153,14 @@ class RoutinesController extends Controller
         ]);
     }*/
 
-    public function teacherTimeTable($id)
+    public function teacherTimeTable()
     {
+        $id = $this->getStaff()->id;
         $routine_obj = new Routine();
-
 
         $routines =  $routine_obj->timeTable($id);
         //$routines = $this->fetchRoutine($class_teacher_id, $options);
-        return $this->render('timetable::routines.time_table', compact('routines'));
+        return $this->render(compact('routines'));
     }
 
     public function classTimeTable()
@@ -181,28 +181,28 @@ class RoutinesController extends Controller
         $student_in_class = $student_in_class_obj->fetchStudentInClass($student_id,  $sess_id, $term_id, $school_id);
 
         $id = $student_in_class->class_teacher_id;
-        $data = Routine::where('class_teacher_id', $id)->get();
-        $options = [];
-        //$events = [];
-        foreach ($data as $record) :
-            $subject = Subject::find($record->subjectTeacher->subject_id);
-            $class = CClass::find($record->classTeacher->class_id);
-            $options[] =  array(
-                'id' => $record->id,
-                'title' => $subject->name . ' (' . $class->name . ')',
-                'start' => $record->start,
-                'end' => $record->end,
-                'background_color' => $record->subjectTeacher->subject->color_code,
-                'dow' => $record->day
-            );
-        endforeach;
+        $routines = Routine::with('subjectTeacher.staff.user', 'subjectTeacher.subject')->where('class_teacher_id', $id)->get();
+        // $options = [];
+        // //$events = [];
+        // foreach ($data as $record) :
+        //     $subject = Subject::find($record->subjectTeacher->subject_id);
+        //     $class = CClass::find($record->classTeacher->class_id);
+        //     $options[] =  array(
+        //         'id' => $record->id,
+        //         'title' => $subject->name . ' (' . $class->name . ')',
+        //         'start' => $record->start,
+        //         'end' => $record->end,
+        //         'background_color' => $record->subjectTeacher->subject->color_code,
+        //         'dow' => $record->day
+        //     );
+        // endforeach;
 
-        $routines =  response()->json([
-            'events' => $options
-        ]);
+        // $routines =  response()->json([
+        //     'events' => $options
+        // ]);
 
         $class_teacher = ClassTeacher::find($id);
         //$routines = $this->fetchRoutine($class_teacher_id, $options);
-        return $this->render('timetable::routines.class_time_table', compact('routines', 'class_teacher'));
+        return $this->render(compact('routines', 'class_teacher'));
     }
 }
