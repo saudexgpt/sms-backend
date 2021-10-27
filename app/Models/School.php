@@ -29,6 +29,15 @@ class School extends Model
         'is_active'
     ];
 
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+    public function staff()
+    {
+        return $this->hasMany(Staff::class);
+    }
+
     public function groupOfSchool()
     {
         return $this->belongsTo(GroupOfSchool::class, 'group_of_school_id', 'id');

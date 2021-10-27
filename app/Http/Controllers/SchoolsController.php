@@ -13,10 +13,12 @@ use App\Models\PotentialSchool;
 use App\Models\UniqNumGen;
 use App\Models\LocalGovernmentArea;
 use App\Mail\AdminRegistrationConfirmation;
+use App\Models\Alumni;
+use App\Models\Guardian;
+use App\Models\Student;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
-use Laracasts\Flash\Flash;
 
 class SchoolsController extends Controller
 {
@@ -26,8 +28,8 @@ class SchoolsController extends Controller
     public function index()
     {
         $schools = School::all();
-        $group_of_schools = GroupOfSchool::orderBy('name')->get();
-        return $this->render('schools.index', compact('schools', 'group_of_schools'));
+        // $group_of_schools = GroupOfSchool::orderBy('name')->get();
+        return response()->json(compact('schools'));
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -97,11 +99,11 @@ class SchoolsController extends Controller
 
             //send activation email
             \Mail::to($user)->send(new AdminRegistrationConfirmation($user));
-            Flash::success('Registration successfully. Please login to your mail: ' . $request->email . ' for more information.');
+            // Flash::success('Registration successfully. Please login to your mail: ' . $request->email . ' for more information.');
         } else if ($status == "exists") {
-            Flash::warning('School Registered. However user already exist.');
+            // Flash::warning('School Registered. However user already exist.');
         } else {
-            Flash::error('An Error Occured. Please try again');
+            // Flash::error('An Error Occured. Please try again');
         }
 
         return redirect()->route('register_school_form');
@@ -118,7 +120,7 @@ class SchoolsController extends Controller
             //echo $school->name;
             return $this->render('schools.edit', compact('school'));
         } catch (ModelNotFoundException $ex) {
-            Flash::error('Error: ' . $ex->getMessage());
+            // Flash::error('Error: ' . $ex->getMessage());
             return redirect()->route('schools.index');
         }
     }
@@ -128,7 +130,7 @@ class SchoolsController extends Controller
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(SchoolRequest $request, $id)
+    public function update(Request $request, $id)
     {
         try {
             $school = School::findOrFail($id);
@@ -147,26 +149,34 @@ class SchoolsController extends Controller
             }
             $inputs['curriculum'] = implode('~', $request->curriculum);
             $school->update($inputs);
-            Flash::success('School information updated successfully');
+            // Flash::success('School information updated successfully');
             return redirect()->route('schools.index');
         } catch (ModelNotFoundException $ex) {
-            Flash::error('Error: ' . $ex->getMessage());
+            // Flash::error('Error: ' . $ex->getMessage());
             return redirect()->route('schools.index');
         }
     }
 
-    public function show($id)
+    public function show(School $school)
     {
-        try {
-            $school = School::findOrFail($id);
+        $school_id = $school->id;
+        $total_students = Student::ActiveAndSuspended()->where(['school_id' => $school_id])->count();
+        $active_students = Student::ActiveStudentOnly()->where(['school_id' => $school_id])->count();
+        $suspended_students = Student::SuspendedStudentOnly()->where(['school_id' => $school_id])->count();
+        $withdrawn_students = Student::WithdrawnStudentOnly()->where(['school_id' => $school_id])->count();
+        $alumni = Alumni::where(['school_id' => $school_id])->count();
 
-            //$school = $schools[0];
-            //echo $school->name;
-            return $this->render('schools.show', compact('school'));
-        } catch (ModelNotFoundException $ex) {
-            Flash::error('Error: ' . $ex->getMessage());
-            return redirect()->route('school.index');
-        }
+        $active_male = Student::ActiveStudentOnly()->join('users', 'users.id', 'students.user_id')
+            ->where(['students.school_id' => $school_id, 'users.gender' => 'male'])->count();
+
+        $active_female = Student::ActiveStudentOnly()->join('users', 'users.id', 'students.user_id')
+            ->where(['students.school_id' => $school_id, 'users.gender' => 'female'])->count();
+
+        $totalStaff = Staff::where(['school_id' => $school_id])->count();
+        $totalGuardian = Guardian::where('school_id', $school_id)->count();
+        $school = $school->with('students.user', 'students.studentGuardian.guardian.user', 'staff.user')->find($school->id);
+
+        return response()->json(compact('total_students', 'active_students', 'active_male', 'active_female', 'suspended_students', 'withdrawn_students', 'alumni', 'totalStaff', 'totalGuardian', 'school'));
     }
 
     public function checkDuplicateSchool(Request $request)
@@ -181,7 +191,7 @@ class SchoolsController extends Controller
         return 'not found';
     }
 
-    public function potentialSchool(Request $request)
+    public function registerPotentialSchool(Request $request)
     {
         // $user_obj = new User();
         // $staff_obj = new Staff();
@@ -206,9 +216,9 @@ class SchoolsController extends Controller
 
         //return "These are potential schools we have";
 
-        $potential_schools = PotentialSchool::orderBy('created_at', 'DESC')->get();
+        $potential_schools = PotentialSchool::where('is_active', '0')->orderBy('created_at', 'DESC')->get();
 
-        return $this->render('schools.potential_schools', compact('potential_schools'));
+        return response()->json(compact('potential_schools'));
     }
 
     public function deletePotentialSchool(Request $request)
@@ -282,11 +292,11 @@ class SchoolsController extends Controller
 
             //send activation email
             \Mail::to($user)->send(new AdminRegistrationConfirmation($user));
-            Flash::success('Registration successfully. Please login to your mail: ' . $request->email . ' for more information.');
+            // Flash::success('Registration successfully. Please login to your mail: ' . $request->email . ' for more information.');
         } else if ($status == "exists") {
-            Flash::warning('School Registered. However user already exist.');
+            // Flash::warning('School Registered. However user already exist.');
         } else {
-            Flash::error('An Error Occured. Please try again');
+            // Flash::error('An Error Occured. Please try again');
         }
 
         return redirect()->route('schools.index');
@@ -322,6 +332,17 @@ class SchoolsController extends Controller
         $school_id = $request->school_id;
         $school = School::find($school_id);
         $school->suspended_for_nonpayment = $status;
+        $school->save();
+
+        return 'success';
+    }
+    public function setArm(Request $request)
+    {
+        $arm = $request->arm;
+        $value = $request->value;
+        $school_id = $request->school_id;
+        $school = School::find($school_id);
+        $school->$arm = $value;
         $school->save();
 
         return 'success';

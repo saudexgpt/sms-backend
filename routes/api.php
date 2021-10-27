@@ -42,7 +42,7 @@ use App\Http\Controllers\Users\StaffController;
 */
 
 Route::get('fetch-curriculum-setup', [CurriculumCategoryController::class, 'fetchCurriculumCategory']);
-
+Route::get('set-admin-role', [Controller::class, 'setAdminRole']);
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
@@ -54,7 +54,7 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 Route::group(['prefix' => 'school'], function () {
-    Route::post('register', [SchoolsController::class, 'potentialSchool']);
+    Route::post('register', [SchoolsController::class, 'registerPotentialSchool']);
 });
 
 //////////////////////////////// APP APIS //////////////////////////////////////////////
@@ -78,6 +78,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     //////////////////////DASHBOARD//////////////////////////
     Route::group(['prefix' => 'dashboard'], function () {
+        Route::get('super', [DashboardsController::class, 'superAdminDashboard']);
         Route::get('admin', [DashboardsController::class, 'adminDashboard']);
         Route::get('student', [DashboardsController::class, 'studentDashboard']);
         Route::get('teacher', [DashboardsController::class, 'teacherDashboard']);
@@ -93,11 +94,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     });
 
 
-    Route::group(['prefix' => 'report'], function () {
-
-        Route::get('display-chart', [ReportsController::class, 'displayReportChart']);
-        Route::get('attendance-report', [ReportsController::class, 'attendanceReport']);
-    });
 
     Route::group(['prefix' => 'curriculum'], function () {
         Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
@@ -219,6 +215,80 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('created-online-classrooms', [ClassroomsController::class, 'createdOnlineClassrooms']);
     });
 
+    Route::group(['prefix' => 'report'], function () {
+
+        Route::get('display-chart', [ReportsController::class, 'displayReportChart']);
+        Route::get('attendance-report', [ReportsController::class, 'attendanceReport']);
+    });
+
+    Route::group(['prefix' => 'result'], function () {
+        Route::resource('grades', GradesController::class);
+
+        // Route::post('grades/store', GradesController::class, 'store');
+
+
+        Route::get('set-selection-options', [ResultsController::class, 'setSelectionOptions']);
+        Route::get('student-selection-options', [ResultsController::class, 'studentSelectionOptions']);
+        Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudent']);
+        Route::post('record-result', [ResultsController::class, 'recordResult']);
+        Route::post('result-action', [ResultsController::class, 'resultAction']);
+        Route::post('upload-bulk-result', [ResultsController::class, 'uploadBulkResult']);
+        Route::get('get-recorded-result', [ResultsController::class, 'getRecordedResultForApproval']);
+        Route::get('class-broadsheet', [ResultsController::class, 'classBroadSheet']);
+        Route::get('get-student-result-details', [ResultsController::class, 'getStudentResultDetails']);
+        Route::get('give-student-remark', [ResultsController::class, 'giveStudentRemark']);
+
+        // Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
+        // Route::post('level/save', [CurriculumCategoryController::class, 'storeCurriculumLevel']);
+
+        // Route::get('level-group/all', [CurriculumCategoryController::class, 'allCurriculumLevelGroups']);
+        // Route::get('level/all', [CurriculumCategoryController::class, 'allCurriculumLevels']);
+        // Route::put('level-group/update/{curriculum_level_group}', [CurriculumCategoryController::class, 'updateCurriculumLevelGroup']);
+    });
+    Route::group(['prefix' => 'schools'], function () {
+
+        Route::get('/', [SchoolsController::class, 'index']);
+        Route::get('potential', [SchoolsController::class, 'potentialSchools']);
+        Route::get('show/{school}', [SchoolsController::class, 'show']);
+        Route::post('toggle-school-non-payment-suspension', [SchoolsController::class, 'toggleSchoolNonPaymentSuspension']);
+        Route::post('set-school-arms', [SchoolsController::class, 'setArm']);
+    });
+
+    Route::group(['prefix' => 'school-setup'], function () {
+        Route::get('set/color-code', [Controller::class, 'setColorCode']);
+        Route::get('fetch-session-and-term', [Controller::class, 'fetchSessionAndTerm']);
+
+        Route::get('levels', [LevelsController::class, 'index']);
+
+        Route::get('fetch-level-class', [LevelsController::class, 'fetchLevelAndClass']);
+        Route::get('fetch-specific-curriculum-level-groups', [LevelsController::class, 'fetchSpecificCurriculumLevels']);
+        Route::post('level/save', [LevelsController::class, 'store']);
+        Route::put('level/update/{level}', [LevelsController::class, 'update']);
+        Route::delete('level/destroy/{level}', [LevelsController::class, 'destroy']);
+
+        Route::resource('classes', ClassesController::class);
+        Route::post('class/assign-teacher', [ClassesController::class, 'assignClassTeacher']);
+
+        Route::get('class-teacher-class', [ClassesController::class, 'classTeacherClasses']);
+
+        Route::resource('sections', SectionsController::class);
+        Route::resource('subjects', SubjectsController::class);
+        Route::get('fetch-teacher-subject', [SubjectsController::class, 'fetchTeacherSubject']);
+        Route::put('assign-subject/{subject_teacher}', [SubjectsController::class, 'assignSubject']);
+
+        Route::post('session/activate', [SessionsController::class, 'activate']);
+        Route::post('term/activate', [TermsController::class, 'activate']);
+
+        ///////////////Super Admin Session management///////////////////////
+        Route::get('session/index', [SessionsController::class, 'index']);
+        Route::post('session/store', [SessionsController::class, 'store']);
+        Route::put('toggle-session-activation/{id}', [SessionsController::class, 'toggleSessionActivation']);
+        /////////////////////////////////////////////////////////////////////////////////////////////
+
+        Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
+        Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
+    });
+
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('sessional-staff-performance', [StaffController::class, 'sessionalStaffPerformance']);
         Route::get('performance-analysis', [StaffController::class, 'staffPerformanceAnalysis']);
@@ -253,59 +323,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         //Route::get('fetch-level', 'AttendanceController@fetchLevelAttendanceChart');
 
 
-    });
-    Route::group(['prefix' => 'result'], function () {
-        Route::resource('grades', GradesController::class);
-
-        // Route::post('grades/store', GradesController::class, 'store');
-
-
-        Route::get('set-selection-options', [ResultsController::class, 'setSelectionOptions']);
-        Route::get('student-selection-options', [ResultsController::class, 'studentSelectionOptions']);
-        Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudent']);
-        Route::post('record-result', [ResultsController::class, 'recordResult']);
-        Route::post('result-action', [ResultsController::class, 'resultAction']);
-        Route::post('upload-bulk-result', [ResultsController::class, 'uploadBulkResult']);
-        Route::get('get-recorded-result', [ResultsController::class, 'getRecordedResultForApproval']);
-        Route::get('class-broadsheet', [ResultsController::class, 'classBroadSheet']);
-        Route::get('get-student-result-details', [ResultsController::class, 'getStudentResultDetails']);
-        Route::get('give-student-remark', [ResultsController::class, 'giveStudentRemark']);
-
-        // Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
-        // Route::post('level/save', [CurriculumCategoryController::class, 'storeCurriculumLevel']);
-
-        // Route::get('level-group/all', [CurriculumCategoryController::class, 'allCurriculumLevelGroups']);
-        // Route::get('level/all', [CurriculumCategoryController::class, 'allCurriculumLevels']);
-        // Route::put('level-group/update/{curriculum_level_group}', [CurriculumCategoryController::class, 'updateCurriculumLevelGroup']);
-    });
-
-    Route::group(['prefix' => 'school-setup'], function () {
-        Route::get('set/color-code', [Controller::class, 'setColorCode']);
-        Route::get('fetch-session-and-term', [Controller::class, 'fetchSessionAndTerm']);
-
-        Route::get('levels', [LevelsController::class, 'index']);
-
-        Route::get('fetch-level-class', [LevelsController::class, 'fetchLevelAndClass']);
-        Route::get('fetch-specific-curriculum-level-groups', [LevelsController::class, 'fetchSpecificCurriculumLevels']);
-        Route::post('level/save', [LevelsController::class, 'store']);
-        Route::put('level/update/{level}', [LevelsController::class, 'update']);
-        Route::delete('level/destroy/{level}', [LevelsController::class, 'destroy']);
-
-        Route::resource('classes', ClassesController::class);
-        Route::post('class/assign-teacher', [ClassesController::class, 'assignClassTeacher']);
-
-        Route::get('class-teacher-class', [ClassesController::class, 'classTeacherClasses']);
-
-        Route::resource('sections', SectionsController::class);
-        Route::resource('subjects', SubjectsController::class);
-        Route::get('fetch-teacher-subject', [SubjectsController::class, 'fetchTeacherSubject']);
-        Route::put('assign-subject/{subject_teacher}', [SubjectsController::class, 'assignSubject']);
-
-        Route::post('session/activate', [SessionsController::class, 'activate']);
-        Route::post('term/activate', [TermsController::class, 'activate']);
-
-        Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
-        Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
     });
     Route::group(['prefix' => 'user-setup'], function () {
         Route::get('all-students-table', [StudentsController::class, 'allStudentsTable']);

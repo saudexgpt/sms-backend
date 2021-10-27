@@ -195,7 +195,19 @@ class DashboardsController extends Controller
             return $this->render('core::dashboard.parent', $data);
         }
     }
-
+    public function superAdminDashboard()
+    {
+        $totalSchools = School::count();
+        $totalPotentialSchools = PotentialSchool::count();
+        $totalGuardian = Guardian::count();
+        $total_students = Student::ActiveAndSuspended()->count();
+        $active_students = Student::ActiveStudentOnly()->count();
+        $suspended_students = Student::SuspendedStudentOnly()->count();
+        $withdrawn_students = Student::WithdrawnStudentOnly()->count();
+        $alumni = Alumni::count();
+        $totalStaff = Staff::count();
+        return $this->render(compact('totalPotentialSchools', 'totalSchools', 'totalGuardian', 'total_students', 'active_students', 'suspended_students', 'withdrawn_students', 'alumni', 'totalStaff'));
+    }
     public function adminDashboard()
     {
         $user = $this->getUser();

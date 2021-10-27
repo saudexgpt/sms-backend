@@ -17,9 +17,8 @@ class SessionsController extends Controller
      */
     public function index()
     {
-        //$sessions = $this->sessions;
-        //return $this->render('sessions.manage', compact('sessions'));
-        return 1;
+        $sessions = SSession::orderBy('id', 'DESC')->get();
+        return $this->render(compact('sessions'));
     }
 
     /**
@@ -48,34 +47,12 @@ class SessionsController extends Controller
     public function activate(Request $request)
     {
 
-        /*$other_sessions= SSession::where('is_active', '1')->get();
-        foreach ($other_sessions as $other_session) {
-            $other_session->is_active = '0';
-            $other_session->save();
-        }
-        //activate this session
-        $current_session = $request->current_session;
-        $session = SSession::find($current_session);
-
-        $session->is_active = '1';
-
-        $session->save();*/
-
         $school = $this->getSchool();
 
         $school->current_session = $request->current_session;
 
         $school->save();
         return $this->render([]);
-    }
-
-    /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function activateSession(Request $request, $id)
-    {
-        $sessions = $this->sessions;
-        return $this->render('core::sessions.manage', compact('sessions'));
     }
 
     /**
@@ -86,29 +63,30 @@ class SessionsController extends Controller
     public function store(Request $request, SSession $session)
     {
         $inputs = request()->all();
-        $inputs['school_id'] = $this->getSchool()->id;
-        $session = $session->create($inputs);
-        // Deactivate previous active session
-        /*SSession::where('is_active', '1')->where('id', '<>', $session->id)->update([
-            'is_active' => '0'
-        ]);*/
-        return redirect()->route('sessions.index');
-    }
+        $exist = SSession::where('name', $request->name)->first();
+        if (!$exist) {
 
-    /**
-     * @param $id
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
-     */
-    public function edit($id)
-    {
-        try {
-            $sessions = $this->sessions;
-            $session = SSession::findOrFail($id);
-            return $this->render('sessions.manage', compact('sessions', 'session'));
-        } catch (ModelNotFoundException $ex) {
-            return redirect()->route('sessions.index');
+            $session = $session->create($inputs);
         }
+        return $this->index();
     }
+    public function toggleSessionActivation(Request $request, $id)
+    {
+        $session = SSession::findOrFail($id);
+        $session->is_active = $request->status;
+        $session->save();
+        return $this->index();
+    }
+    // public function deactivateSession($id)
+    // {
+    //     $session = SSession::findOrFail($id);
+    //     //$session->delete();
+    //     $session->is_active = '0';
+    //     $session->save();
+    //     return $this->index();
+    // }
+
+
 
     /**
      * @param SessionRequest $request

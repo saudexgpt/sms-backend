@@ -18,6 +18,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\SSession;
 use App\Models\Staff;
+use App\Models\StaffRole;
 use App\Models\Student;
 use App\Models\StudentsInClass;
 use App\Models\Subject;
@@ -664,5 +665,16 @@ class Controller extends BaseController
     public function moduleNotEnabled($module_slug)
     {
         return $this->render('errors.module_not_enabled', compact('module_slug'));
+    }
+
+    public function setAdminRole()
+    {
+        $staff_roles = StaffRole::with('staff.user')->where('role', 'admin')->get();
+        foreach ($staff_roles as $staff_role) {
+            $user = $staff_role->staff->user;
+            if ($user) {
+                $user->syncRoles([1]); // admin is 1
+            }
+        }
     }
 }

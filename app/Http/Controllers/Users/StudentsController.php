@@ -343,9 +343,12 @@ class StudentsController extends Controller
      */
     public function show(Student $student)
     {
-        $school_id = $this->getSchool()->id;
-        $sess_id = $this->getSession()->id;
-        $term_id = $this->getTerm()->id;
+        $school_id = $student->school_id;
+        $sess_id = $student->school->current_session;
+        $term_id = $student->school->current_term;
+        // $school_id = $student->school_id;
+        // $sess_id = $this->getSession()->id;
+        // $term_id = $this->getTerm()->id;
         $student = Student::with(['school.lga', 'studentGuardian.guardian.user', 'user.state', 'user.lga', 'myClasses' => function ($query) use ($school_id, $sess_id) {
             $query->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id])->orderBy('id', 'DESC');
         }, 'myClasses.classTeacher.c_class',  'currentStudentLevel', 'myClasses.classTeacher.staff.user', 'myClasses.classTeacher.subjectTeachers.staff.user', 'behaviors', 'skills', 'results.subjectTeacher.subject'])->find($student->id);
