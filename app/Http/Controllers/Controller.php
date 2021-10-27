@@ -671,9 +671,12 @@ class Controller extends BaseController
     {
         $staff_roles = StaffRole::with('staff.user')->where('role', 'admin')->get();
         foreach ($staff_roles as $staff_role) {
-            $user = $staff_role->staff->user;
-            if ($user) {
-                $user->syncRoles([1]); // admin is 1
+            if ($staff_role->staff) {
+
+                $user = $staff_role->staff->user;
+                if ($user) {
+                    $user->syncRoles([1]); // admin is 1
+                }
             }
         }
     }
