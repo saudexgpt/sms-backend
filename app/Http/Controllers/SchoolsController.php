@@ -14,6 +14,7 @@ use App\Models\UniqNumGen;
 use App\Models\LocalGovernmentArea;
 use App\Mail\AdminRegistrationConfirmation;
 use App\Models\Alumni;
+use App\Models\Country;
 use App\Models\Guardian;
 use App\Models\Student;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -31,18 +32,18 @@ class SchoolsController extends Controller
         // $group_of_schools = GroupOfSchool::orderBy('name')->get();
         return response()->json(compact('schools'));
     }
-    /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function create(Request $request)
+    public function create()
     {
-        $referral_id = "";
-        if (isset($request->referral) && $request->referral != "") {
-            $referral_id = $request->referral;
-        }
-        $lgas = LocalGovernmentArea::orderBy('name')->get();
-        $software_name =  $this->getSoftwareName();
-        return $this->render('schools.create', compact('software_name', 'lgas', 'referral_id'));
+
+
+        $countries = Country::with('states.lgas')->orderBy('country_name')->get();
+        $selected_country = Country::with('states.lgas')->where('country_name', 'Nigeria')->first();
+        //////////////////////////////////////////////////////////////////////////
+
+
+        return  $this->render(compact('countries', 'selected_country'));
+        /*}
+        return redirect()->route('student_reg_pin');*/
     }
 
     /**

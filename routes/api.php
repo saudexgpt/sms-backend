@@ -54,6 +54,7 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 Route::group(['prefix' => 'school'], function () {
+    Route::get('create', [SchoolsController::class, 'create']);
     Route::post('register', [SchoolsController::class, 'registerPotentialSchool']);
 });
 
