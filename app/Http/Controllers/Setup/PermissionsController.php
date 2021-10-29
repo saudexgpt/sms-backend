@@ -20,7 +20,7 @@ class PermissionsController extends Controller
     {
         //
         $school = $this->getSchool();
-        $permissions =  Permission::orderBy('name')->get();
+        $permissions =  Permission::where('hidden', '0')->orderBy('name')->get();
         return $this->render(compact('permissions'));
     }
 
