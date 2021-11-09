@@ -72,6 +72,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::put('roles/update/{role}', [RolesController::class, 'update']);
         Route::post('roles/assign', [RolesController::class, 'assignRoles']);
 
+
         Route::get('permissions/index', [PermissionsController::class, 'index']);
         Route::post('permissions/assign-user', [PermissionsController::class, 'assignUserPermissions']);
         Route::post('permissions/assign-role', [PermissionsController::class, 'assignRolePermissions']);
@@ -253,6 +254,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('show/{school}', [SchoolsController::class, 'show']);
         Route::post('toggle-school-non-payment-suspension', [SchoolsController::class, 'toggleSchoolNonPaymentSuspension']);
         Route::post('set-school-arms', [SchoolsController::class, 'setArm']);
+
+        Route::post('confirm-potential-school', [SchoolsController::class, 'confirmPotentialSchool']);
     });
 
     Route::group(['prefix' => 'school-setup'], function () {

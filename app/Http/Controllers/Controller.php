@@ -7,6 +7,7 @@ use App\Events\Event;
 use App\Events\SubjectEvent;
 use App\Http\Resources\UserResource;
 use App\Models\ActivatedModule;
+use App\Models\ClassTeacher;
 use App\Models\Gallery;
 use App\Models\Grade;
 use App\Models\Guardian;
@@ -32,6 +33,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class Controller extends BaseController
@@ -407,6 +409,55 @@ class Controller extends BaseController
         return $this->this_term;
     }
 
+    public function getClassTeachers()
+    {
+        $school_id = $this->getSchool()->id;
+        $user = $this->getUser();
+        // return $user->roles;
+        $roles = array_map(
+            function ($role) {
+                return $role['name'];
+            },
+            $user->roles->toArray()
+        );
+
+        if (in_array('admin', $roles)) {
+            $class_teachers = ClassTeacher::with(['level', 'c_class'])->where(['school_id' => $school_id])->get();
+            return $class_teachers;
+        }
+        if (in_array('teacher', $roles)) {
+
+            $id = $this->getStaff()->id;
+            $class_teachers = ClassTeacher::with(['level', 'c_class'])->where(['teacher_id' => $id, 'school_id' => $school_id])->get();
+            return $class_teachers;
+        } else if (in_array('student', $roles)) {
+
+            $id = $this->getStudent()->id;
+            $student_in_class = StudentsInClass::with(['classTeacher.level', 'classTeacher.c_class'])->where(['student_id' => $id, 'school_id' => $school_id])->orderBy('id', 'DESC')->first();
+            $class_teachers = [$student_in_class->classTeacher];
+            return $class_teachers;
+        } else {
+            $user_roles = $user->roles;
+            $class_teachers = new Collection();
+            $curriculum_level_group_id_array = [];
+            foreach ($user_roles as $user_role) {
+                $curriculum_level_group_ids = $user_role->curriculum_level_group_ids;
+                $curriculum_level_array = explode('~', $curriculum_level_group_ids);
+
+                $curriculum_level_group_id_array = array_merge($curriculum_level_group_id_array, $curriculum_level_array);
+            }
+
+            foreach ($curriculum_level_group_id_array as $curriculum_level_group_id) {
+                $level_class_teachers = ClassTeacher::with(['level', 'c_class'])
+                    ->join('levels', 'levels.id', '=', 'class_teachers.level_id')
+                    ->join('curriculum_level_groups', 'curriculum_level_groups.id', '=', 'levels.curriculum_level_group_id')
+                    ->where(['levels.curriculum_level_group_id' => $curriculum_level_group_id, 'class_teachers.school_id' => $school_id])->get();
+
+                $class_teachers = $class_teachers->merge($level_class_teachers);
+            }
+            return $class_teachers;
+        }
+    }
 
     public function getRelationship($staffs, $type = 'all')
     {

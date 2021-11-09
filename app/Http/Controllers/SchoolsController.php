@@ -62,14 +62,16 @@ class SchoolsController extends Controller
         $registered_school = $school->registerSchool($request);
         $request->school_id = $registered_school->id;
 
-        $uniq_num_gen_obj->school_id = $request->school_id;
-        $uniq_num_gen_obj->prefix_staff = $request->slug;
-        $uniq_num_gen_obj->prefix_student = $request->slug . '/STU/';
-        $uniq_num_gen_obj->prefix_parent = $request->slug . '/GUA/';
-        $uniq_num_gen_obj->next_student_no = 1;
-        $uniq_num_gen_obj->next_parent_no = 1;
-        $uniq_num_gen_obj->next_staff_no = 1;
-        $uniq_num_gen_obj->save();
+        $uniq_num_gen_obj->createUniqGen($request);
+
+        // $uniq_num_gen_obj->school_id = $request->school_id;
+        // $uniq_num_gen_obj->prefix_staff = $request->slug;
+        // $uniq_num_gen_obj->prefix_student = $request->slug . '/STU/';
+        // $uniq_num_gen_obj->prefix_parent = $request->slug . '/GUA/';
+        // $uniq_num_gen_obj->next_student_no = 1;
+        // $uniq_num_gen_obj->next_parent_no = 1;
+        // $uniq_num_gen_obj->next_staff_no = 1;
+        // $uniq_num_gen_obj->save();
 
 
         $username = $uniq_num_gen_obj->generateUsername($request->school_id, 'staff');
@@ -240,6 +242,10 @@ class SchoolsController extends Controller
         $request->school_email = $potential_school->email;
         $request->school_phone = $potential_school->phone;
         $request->sub_domain =  $potential_school->sub_domain;
+        $request->curriculum = $potential_school->curriculum;
+        $request->nursery = $potential_school->nursery;
+        $request->primary =  $potential_school->pry;
+        $request->secondary =  $potential_school->secondary;
 
 
         $request->first_name = $potential_school->admin_first_name;

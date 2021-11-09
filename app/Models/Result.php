@@ -366,9 +366,7 @@ class Result extends Model
                 'subject_teacher_id' => $subject_teacher_id
             ])->first();
 
-            if ($result_action) {
-                $student_result->result_action_array = $this->resultStatusAction($result_action->$action_term);
-            }
+            $student_result->result_action_array = $this->resultStatusAction(($result_action) ? $result_action->$action_term : null);
             //$total_for_avg = $total_for_avg+$student_result->total;
             list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($student_result, $grades);
 
