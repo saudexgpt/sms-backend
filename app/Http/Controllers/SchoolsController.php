@@ -274,6 +274,7 @@ class SchoolsController extends Controller
 
         //save the school admin details and create his admin role
         list($user, $status) = $user_obj->saveUserAsAdmin($request);
+        $user->syncRoles(['admin']);
         $user->school_name = $registered_school->name;
         $user->username = $user->username; //$username;
         $user->raw_password = $user->username;
@@ -306,7 +307,7 @@ class SchoolsController extends Controller
             // Flash::error('An Error Occured. Please try again');
         }
 
-        return redirect()->route('schools.index');
+        // return redirect()->route('schools.index');
     }
 
     public function updateLogo(Request $request)

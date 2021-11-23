@@ -184,4 +184,22 @@ class AuthController extends Controller
             'message' => 'success'
         ]);
     }
+
+    public function confirmRegistration($hash)
+    {
+
+
+        $confirm_hash = User::where(['confirm_hash' => $hash, 'is_confirmed' => '0'])->first();
+
+        if ($confirm_hash) {        //hash is confirmed and valid
+
+            $confirm_hash->is_confirmed = '1';
+            $confirm_hash->save();
+            $message = 'confirmed';
+            return $message;
+            //return view('auth.registration_confirmed', compact('message'));
+
+        }
+        return 'Invalid Confirmation';
+    }
 }
