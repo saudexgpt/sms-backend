@@ -58,22 +58,23 @@ class QuizController extends Controller
 
         return response()->json(compact('subject_teachers'), 200);
     }
-    public function quizDashboard()
+    public function quizDashboard(Request $request)
     {
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $school_id = $this->getSchool()->id;
         $user = $this->getUser();
         if ($user->hasRole('admin') || $user->hasRole('proprietor')) {
+            $class_teacher_id = $request->class_teacher_id;
             // $class_teachers = ClassTeacher::with(['c_class', 'subjectTeachers.subject', 'subjectTeachers.questions', 'subjectTeachers.theoryQuestions', 'subjectTeachers.quizCompilations.quizzes', 'subjectTeachers.quizCompilations.quizAttempts.quizAnswers.question', 'subjectTeachers.quizCompilations.quizAttempts.quizAnswers.theoryQuestion', 'subjectTeachers.quizCompilations.quizAttempts.student.user'])->where('school_id', $school_id)->get();
 
-            $class_teachers = ClassTeacher::with(['c_class', 'subjectTeachers.subject', 'subjectTeachers.questions', 'subjectTeachers.theoryQuestions', 'subjectTeachers.quizCompilations' => function ($query) use ($sess_id, $term_id) {
+            $class_teacher = ClassTeacher::with(['c_class', 'subjectTeachers.subject', 'subjectTeachers.questions', 'subjectTeachers.theoryQuestions', 'subjectTeachers.quizCompilations' => function ($query) use ($sess_id, $term_id) {
                 return $query->where(['term_id' => $term_id, 'sess_id' => $sess_id])->with([
                     'quizzes', 'quizAttempts.quizAnswers.question', 'quizAttempts.quizAnswers.theoryQuestion', 'quizAttempts.student.user'
                 ]);
-            }])->where('school_id', $school_id)->get();
+            }])->where('school_id', $school_id)->find($class_teacher_id);
 
-            return response()->json(compact('class_teachers'), 200);
+            return response()->json(compact('class_teacher'), 200);
         }
         if ($user->hasRole('student')) {
 
@@ -112,11 +113,10 @@ class QuizController extends Controller
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         if ($user->hasRole('teacher')) {
-            $can_view_teacher = true;
             $teacher = $this->getStaff();
 
             // $subject_teachers = SubjectTeacher::with(['subject', 'classTeacher.c_class', 'questions', 'theoryQuestions', 'quizCompilations.quizzes', 'quizCompilations.quizAttempts.quizAnswers.question', 'quizCompilations.quizAttempts.quizAnswers.theoryQuestion',  'quizCompilations.quizAttempts.student.user'])->where('teacher_id', $teacher->id)->get();
-            $subject_teachers = SubjectTeacher::with(['subject', 'classTeacher.c_class', 'questions', 'theoryQuestions', 'quizCompilations.quizzes', 'quizCompilations' => function ($query) use ($sess_id, $term_id) {
+            $subject_teachers = SubjectTeacher::with(['subject', 'classTeacher.c_class', 'questions', 'theoryQuestions', /*'quizCompilations.quizzes',*/ 'quizCompilations' => function ($query) use ($sess_id, $term_id) {
                 return $query->where(['term_id' => $term_id, 'sess_id' => $sess_id])->with([
                     'quizzes', 'quizAttempts.quizAnswers.question', 'quizAttempts.quizAnswers.theoryQuestion', 'quizAttempts.student.user'
                 ]);

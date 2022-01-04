@@ -12,6 +12,7 @@ use App\Http\Controllers\LMS\ClassroomsController;
 use App\Http\Controllers\LMS\QuizController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Result\GradesController;
+use App\Http\Controllers\Result\ResultDisplaySettingsController;
 use App\Http\Controllers\Result\ResultsController;
 use App\Http\Controllers\SchoolsController;
 use App\Http\Controllers\Setup\ClassesController;
@@ -232,6 +233,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('set-selection-options', [ResultsController::class, 'setSelectionOptions']);
         Route::get('student-selection-options', [ResultsController::class, 'studentSelectionOptions']);
         Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudent']);
+        // Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudentNew']);
         Route::post('record-result', [ResultsController::class, 'recordResult']);
         Route::post('result-action', [ResultsController::class, 'resultAction']);
         Route::post('upload-bulk-result', [ResultsController::class, 'uploadBulkResult']);
@@ -239,6 +241,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('class-broadsheet', [ResultsController::class, 'classBroadSheet']);
         Route::get('get-student-result-details', [ResultsController::class, 'getStudentResultDetails']);
         Route::get('give-student-remark', [ResultsController::class, 'giveStudentRemark']);
+        Route::get('fetch-result-display-settings', [ResultDisplaySettingsController::class, 'index']);
+        Route::put('update-result-display-settings/{result_setting}', [ResultDisplaySettingsController::class, 'update']);
+
 
         // Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
         // Route::post('level/save', [CurriculumCategoryController::class, 'storeCurriculumLevel']);

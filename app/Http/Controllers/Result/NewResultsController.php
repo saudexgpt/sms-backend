@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Result;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Result;
+use App\Models\NewResult as Result;
 use App\Models\CClass;
 use App\Models\School;
 use App\Models\Student;
@@ -19,7 +19,7 @@ use App\Models\ResultAction;
 use App\Models\ResultComment;
 use App\Models\Remark;
 
-class ResultsController extends Controller
+class NewResultsController extends Controller
 {
 
     public function necessaryParams()
@@ -645,7 +645,67 @@ class ResultsController extends Controller
 
         return response()->json(compact('edit_midterm', 'edit_exam', 'result_action_array'));
     }
+    /**
+     * This manages the result action (e.g submitted, save, approved, rejected)
+     *
+     * @return \Illuminate\Http\Response
+     */
+    // public function resultAction(Request $request)
+    // {
+    //     $id = $request->id;
+    //     $term_action = 'actions_term_' . $request->term_id; //selected term
 
+    //     $school_id = $this->getSchool()->id;
+
+
+
+    //     $sess_id = $request->sess_id; //selected session
+
+    //     $action_result = ResultAction::where(['sess_id' => $sess_id, 'subject_teacher_id' => $id, 'school_id' => $school_id])->first();
+    //     // return $action_result;
+    //     $existing_action = $action_result->$term_action;
+
+    //     $decoded_action = json_decode($existing_action, 1);
+
+    //     $assessment = $request->assessment; //half or full
+
+    //     $action = $request->action;
+
+    //     $subject_teacher = SubjectTeacher::find($id);
+
+    //     $subject = $subject_teacher->subject->name;
+    //     $class = CClass::find($subject_teacher->classTeacher->class_id);
+
+    //     if ($action != 'save') {
+    //         $request->class_teacher_id = $subject_teacher->class_teacher_id;
+    //         //we dont want to record save events...intead we want submit,approve, publish, disapprove etc
+    //         $event_action = ucwords($action) . " students " . $subject . " " . ucwords($assessment) . "-Term result for " . $class->name;
+
+    //         $this->teacherStudentEventTrail($request, $event_action, 'class');
+    //         //$this->auditTrailEvent($request, $event_action);
+
+    //     }
+
+    //     $decoded_action[$assessment] = $action;
+
+    //     $encode_action = json_encode($decoded_action);
+
+    //     $action_result->$term_action = $encode_action;
+
+    //     if ($action_result->save()) {
+    //         // $action_res = new ResultAction();
+    //         // $result_actions = $action_res->performResultAction($school_id, $id, $sess_id, $term_action);
+    //         $result_obj = new Result();
+    //         $result_actions = $action_result->$term_action;
+    //         list($edit_midterm, $edit_ca1, $edit_ca2, $edit_ca3, $edit_ca4, $edit_ca5, $edit_exam) = $result_obj->getAllResultActions($result_actions);
+
+    //         $result_action_array = $result_obj->resultStatusAction($result_actions);
+
+    //         return response()->json(compact('edit_midterm', 'edit_ca1', 'edit_ca2', 'edit_ca3', 'edit_ca4', 'edit_ca5', 'edit_exam', 'result_action_array'));
+    //         // return '<h4><div class="label label-success">Action Successful</div></h4>';
+    //     }
+    //     return '<h4><div class="label label-danger">Action Failed</div></h4>';
+    // }
     public function activateAssessmentsView()
     {
         $active_assessment = $this->school->active_assessment;
@@ -798,6 +858,37 @@ class ResultsController extends Controller
         return $this->render('errors.404', compact('message'));*/
     }
 
+    public function resultViewStudent(Request $request)
+    {
+        $class_id = $request->class_id;
+        $sess_id = $request->sess_id;
+        $term_id = $request->term_id;
+        $school_id = $this->getSchool()->id;
+
+        $students_in_class = StudentsInClass::where([
+            'class_teacher_id' => $class_id,
+            'sess_id' => $sess_id,
+            'term_id' => $term_id,
+            'school_id' => $school_id
+        ])->first();
+        $opt_tag = '<select name="student_id" class="form-control selectpicker" data-live-search="true" required  id="student_id">';
+        if ($students_in_class) {
+            $student_ids_str = $students_in_class->student_ids;
+            $student_ids_arr = explode('~', $student_ids_str);
+            foreach ($student_ids_arr as $student_id) :
+
+                $student = Student::find($student_id);
+                if ($student) {
+                    $opt_tag .= '<option value="' . $student_id . '">' . $student->user->first_name . ' ' . $student->user->last_name . '</option>';
+                }
+
+            endforeach;
+        } else {
+            $opt_tag .= '<option value="">No student found in this class</option>';
+        }
+        $opt_tag .= '</select>';
+        return $opt_tag;
+    }
 
     public function getStudentResultDetails(Request $request, Result $result)
     {

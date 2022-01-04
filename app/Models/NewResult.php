@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Result extends Model
+class NewResult extends Model
 {
     public function student()
     {
@@ -215,6 +215,37 @@ class Result extends Model
         return false;
     }
 
+    function emptyScore($test_score, $exam_score)
+    {
+        if ($test_score == "" || $exam_score == "") {
+            return true;
+        }
+        return false;
+    }
+
+    private function checkTestAbsence($test_score)
+    {
+        if ($test_score == '' || $test_score == '-') {
+            $test_score = 'No-Score';
+        } else {
+            $test_score = $test_score;
+        }
+        return $test_score;
+    }
+
+    private function  checkExamAbsence($exam_score)
+    {
+        if ($exam_score == '' || $exam_score == '-') {
+            $exam_score = 'No-Score';
+        } else {
+            $exam_score = $exam_score;
+        }
+        return $exam_score;
+    }
+
+
+
+
     //This ensures that once a result is submitted or approved no more editing is made
     public function getAllResultActions($result)
     {
@@ -258,7 +289,7 @@ class Result extends Model
         return array($view_half, $view_full, $status_half, $status_full);
     }
 
-    public function subjectStudentPerformance($result_details, $grades, $result_settings)
+    public function subjectStudentPerformance($result_details)
     {
         $subject_class_average = 0;
         $male_average = 0;
@@ -275,28 +306,27 @@ class Result extends Model
         $subject_totals = [];
         foreach ($result_details as $result_detail) {
             $count++;
-            list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($result_detail, $grades, $result_settings);
-            if ($total >= $subject_highest_score) {
-                $subject_highest_score = $total;
+            if ($result_detail->total >= $subject_highest_score) {
+                $subject_highest_score = $result_detail->total;
             }
 
-            if (($total != null) && $total <= $subject_lowest_score) {
-                $subject_lowest_score = $total;
+            if (($result_detail->total != null) && $result_detail->total <= $subject_lowest_score) {
+                $subject_lowest_score = $result_detail->total;
             }
 
             if (strtolower($result_detail->student->user->gender) == 'male') {
                 $male_count++;
 
-                $male_total_score += $total;
+                $male_total_score += $result_detail->total;
             }
 
             if (strtolower($result_detail->student->user->gender) == 'female') {
                 $female_count++;
-                $female_total_score += $total;
+                $female_total_score += $result_detail->total;
             }
 
-            $total_score += $total;
-            $subject_totals[] = $total;
+            $total_score += $result_detail->total;
+            $subject_totals[] = $result_detail->total;
         }
         if ($male_count > 0) {
             $male_average = $male_total_score / $male_count;
@@ -331,19 +361,19 @@ class Result extends Model
             $term_id = $options['term'];
             $grades = $options['grades'];
             $result_settings = $options['result_settings'];
-            // $result = Result::where([
-            //     'sess_id' => $options['sess_id'],
-            //     'school_id' => $options['school_id'],
-            //     'term_id' => $term_id,
-            //     'subject_teacher_id' => $subject_teacher_id
-            // ])->first();
+            $result = Result::where([
+                'sess_id' => $options['sess_id'],
+                'school_id' => $options['school_id'],
+                'term_id' => $term_id,
+                'subject_teacher_id' => $subject_teacher_id
+            ])->first();
 
-            // list($view_half, $view_full, $status_half, $status_full) = $this->resultStatusAction(($result) ? $result : null);
+            list($view_half, $view_full, $status_half, $status_full) = $this->resultStatusAction(($result) ? $result : null);
 
-            // $viewable = ['approved', 'published'];
+            $viewable = ['approved', 'published'];
             // if (($options['sub_term'] == 'half' && in_array($status_half, $viewable)) || ($options['sub_term'] == 'full' && in_array($status_full, $viewable))) {
 
-            // $student_result->result_action_array = array($view_half, $view_full, $status_half, $status_full);
+            $student_result->result_action_array = array($view_half, $view_full, $status_half, $status_full);
             //$total_for_avg = $total_for_avg+$student_result->total;
             list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($student_result, $grades, $result_settings);
 
@@ -356,7 +386,7 @@ class Result extends Model
                 'term_id' => $options['term']
             ])->get();
 
-            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $this->subjectStudentPerformance($subject_result_details, $grades, $result_settings);
+            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $this->subjectStudentPerformance($subject_result_details);
 
             $student_result->test = $test;
             $student_result->total = $total;

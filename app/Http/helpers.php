@@ -889,6 +889,7 @@ function rankResult($score, $scores)
         //$position = "";
         if ($score == $each_score) {
             $position = array_search($score, $scores) + 1;
+            break;
         }
     }
     if ($position == '1' || (strlen($position) == '2' && substr($position, 0, 1) != '1') && substr($position, 1) == '1') {

@@ -8,6 +8,7 @@ use App\Events\SubjectEvent;
 use App\Http\Resources\UserResource;
 use App\Models\ActivatedModule;
 use App\Models\ClassTeacher;
+use App\Models\CurriculumLevelGroup;
 use App\Models\Gallery;
 use App\Models\Grade;
 use App\Models\Guardian;
@@ -15,6 +16,7 @@ use App\Models\Level;
 use App\Models\LocalGovernmentArea;
 use App\Models\News;
 use App\Models\Permission;
+use App\Models\ResultDisplaySetting;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\SSession;
@@ -291,7 +293,32 @@ class Controller extends BaseController
     public function setSchool($id)
     {
         $school = School::findOrFail($id);
+        $this->setResultSettings($school);
         $this->school = $school;
+    }
+
+    public function setResultSettings($school)
+    {
+        $curriculum = $school->curriculum;
+        $curriculum_level_groups = CurriculumLevelGroup::where('curriculum', $curriculum)->get();
+        foreach ($curriculum_level_groups as $curriculum_level_group) {
+            $setting = ResultDisplaySetting::where(['school_id' => $school->id, 'curriculum_level_group_id' => $curriculum_level_group->id])->first();
+
+            if (!$setting) {
+                $setting = new ResultDisplaySetting();
+                $setting->school_id = $school->id;
+                $setting->curriculum_level_group_id = $curriculum_level_group->id;
+                $setting->save();
+            }
+        }
+    }
+
+    public function getResultSettings($curriculum_level_group_id)
+    {
+        $school_id = $this->getSchool()->id;
+        $result_settings = ResultDisplaySetting::where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->first();
+
+        return $result_settings;
     }
 
     public function getSchool()
