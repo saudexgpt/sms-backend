@@ -422,7 +422,7 @@ class Result extends Model
                 $viewable = ['approved', 'published'];
                 // if (($sub_term == 'half' && in_array($status_half, $viewable)) || ($sub_term == 'full' && in_array($status_full, $viewable))) {
 
-                $subject_name = $student_result->subjectTeacher->subject->code;
+                $subject_name = ($student_result->subjectTeacher) ? $student_result->subjectTeacher->subject->code : '';
                 $total = $student_result->total;
 
 
