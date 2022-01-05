@@ -101,6 +101,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::group(['prefix' => 'curriculum'], function () {
         Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
         Route::post('level/save', [CurriculumCategoryController::class, 'storeCurriculumLevel']);
+        Route::put('level/update/{curriculum_level}', [CurriculumCategoryController::class, 'updateCurriculumLevel']);
 
         Route::get('level-group/all', [CurriculumCategoryController::class, 'allCurriculumLevelGroups']);
         Route::get('level/all', [CurriculumCategoryController::class, 'allCurriculumLevels']);

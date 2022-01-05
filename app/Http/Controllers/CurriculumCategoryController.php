@@ -75,6 +75,21 @@ class CurriculumCategoryController extends Controller
 
         return $this->showCurriculumLevel($curriculum_level);
     }
+    public function  updateCurriculumLevel(Request $request, CurriculumLevel $curriculum_level)
+    {
+        $curriculum_category_id = $request->curriculum_category_id;
+        $curriculum_level_group_id = $request->curriculum_level_group_id;
+        $level_name = $request->level_name;
+        $abbrev = $request->abbrev;
+
+        $curriculum_level->curriculum_category_id = $curriculum_category_id;
+        $curriculum_level->curriculum_level_group_id = $curriculum_level_group_id;
+        $curriculum_level->level_name = $level_name;
+        $curriculum_level->abbrev = $abbrev;
+        $curriculum_level->save();
+
+        return $this->showCurriculumLevel($curriculum_level);
+    }
     public function updateCurriculumLevelGroup(Request $request, CurriculumLevelGroup $curriculum_level_group)
     {
         $curriculum_category = $this->findCurriculumCategory($request->curriculum_id);
