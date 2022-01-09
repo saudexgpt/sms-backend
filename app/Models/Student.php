@@ -157,9 +157,8 @@ class Student extends Model
 
         if ($action == 'update') {
             //this is the students.id from students table
-            $id = $request->id;
+            $id = $request->student_id;
             $student = Student::findOrFail($id);
-            $student->user_id = $request->student_user_id;
             //$student->class_id = $request->class_id;
             $student->current_level = $request->level_id;
             $student->admission_sess_id = $request->admission_sess_id;

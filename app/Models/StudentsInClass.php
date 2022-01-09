@@ -53,7 +53,7 @@ class StudentsInClass extends Model
     public function addStudentToClass($student_id, $class_teacher_id, $sess_id, $term_id, $school_id)
     {
         $student_in_class = StudentsInClass::where([
-            'class_teacher_id' => $class_teacher_id,
+            // 'class_teacher_id' => $class_teacher_id,
             'sess_id' => $sess_id,
             'student_id' => $student_id,
             'school_id' => $school_id
@@ -61,13 +61,15 @@ class StudentsInClass extends Model
 
         if (!$student_in_class) {
             $student_in_class = new StudentsInClass();
-            $student_in_class->class_teacher_id = $class_teacher_id;
             $student_in_class->sess_id = $sess_id;
             $student_in_class->school_id = $school_id;
             $student_in_class->student_id = $student_id;
-
-            $student_in_class->save();
         }
+
+        $student_in_class->class_teacher_id = $class_teacher_id;
+
+
+        $student_in_class->save();
     }
 
     /**

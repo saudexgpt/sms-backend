@@ -43,9 +43,9 @@ class StudentsController extends Controller
             $level_id = $request->level_id;
         }
         // $students_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user', 'classTeachers.c_class'])->where(['sess_id' => $sess_id, 'level_id'=> $level_id, 'school_id' => $school_id])->get();
-        $level = Level::with(['studentsInClass' => function ($query) use ($school_id, $sess_id) {
+        $level = Level::with(['classTeachers.c_class', 'studentsInClass' => function ($query) use ($school_id, $sess_id) {
             $query->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id]);
-        }, 'studentsInClass.student.studentGuardian.guardian.user', 'studentsInClass.student.user', 'studentsInClass.classTeacher.c_class'])->where('school_id',  $school_id)->find($level_id);
+        }, 'studentsInClass.student.studentGuardian.guardian.user', 'studentsInClass.student.user.country.states.lgas', 'studentsInClass.student.user.state.lgas', 'studentsInClass.student.user.lga', 'studentsInClass.classTeacher.c_class'])->where('school_id',  $school_id)->find($level_id);
 
         $students_in_class = $level->studentsInClass;
 
@@ -275,54 +275,34 @@ class StudentsController extends Controller
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, StudentsInClass $student_in_class)
     {
-        //return $request;
-        $request->school = $this->getSchool();
+        // return $request;
+
+        $student_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user'])->find($student_in_class->id);
+        $student = $student_in_class->student;
+        $student_user = $student->user;
+        $student_guardian = $student->studentGuardian;
+        $guardian = $student_guardian->guardian;
+        $guardian_user = $guardian->user;
+        $sess_id = $this->getSession()->id;
         try {
+            // update student details
+            $student->saveStudentInfo($request, 'update');
+            $student_user->saveUserAsStudent($request, 'update');
 
-            $request->id = $id;
-            //save and retrieve class information
-            $request->school_id = $this->getSchool()->id;
-            $request->class_id = $request->class_teacher_id;
+            // update parent info
 
-            //$parent_username = $request->username;
-            if ($request->new_parent == 'yes') {
-                # code...
+            $student_guardian->relationship = $request->relation;
+            $student_guardian->save();
 
-                $user_obj = new User();
-                list($request->parent_user_id, $entry_status) = $user_obj->saveUserAsParent($request);
-
-                if ($entry_status == 'new_entry') {
-                    $this->updateUniqNumDb($request->school->id, 'parent');
-                }
-            } else {
-                //save user information as parent
-                $user = new User();
-                $request->parent_user_id = $user->saveUserAsParent($request, 'update');
-            }
-
-
-
-            //save user information as student
-            $user = new User();
-            $request->student_user_id = $user->saveUserAsStudent($request, 'update');
-
-
-
-            //save students table information
-            $student = new Student();
-
-            $request->student_id = $student->saveStudentInfo($request, 'update');
-
-
-
-
+            $guardian->occupation = $request->occupation;
+            $guardian->save();
+            $request->parent_user_id = $guardian_user->id;
+            $guardian_user->saveUserAsParent($request, 'update');
 
             //add student to class
-            $student_in_class_obj = new StudentsInClass();
-            $student_in_class_obj->removeStudentFromClass($request->student_id, $request->admission_sess_id, $this->getTerm()->id, $request->school_id);
-            $student_in_class_obj->addStudentToClass($request->student_id, $request->class_id, $request->admission_sess_id, $this->getTerm()->id, $request->school_id);
+            $student_in_class->addStudentToClass($student->id, $request->class_teacher_id, $sess_id, $this->getTerm()->id, $this->getSchool()->id);
 
 
             //save guardian informaiton
@@ -330,10 +310,10 @@ class StudentsController extends Controller
 
             $guardian->saveGuardianInfo($request);
 
-
-            return redirect()->route('students.index');
+            $student_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user'])->find($student_in_class->id);
+            return response()->json(compact('student_in_class'), 200);
         } catch (ModelNotFoundException $ex) {
-            return redirect()->route('students.index');
+            return response()->json(['message' => $ex], 500);
         }
     }
 

@@ -30,7 +30,7 @@ class StaffController extends Controller
     public function index()
     {
         $school = $this->getSchool();
-        $staff = Staff::with('user.roles')->where('school_id', $school->id)->get();
+        $staff = Staff::with(['user.roles', 'user.country.states.lgas', 'user.state.lgas', 'user.lga'])->where('school_id', $school->id)->get();
         foreach ($staff as $each_staff) {
             $each_staff->user->permissions = $each_staff->user->allPermissions();
         }
@@ -108,45 +108,35 @@ class StaffController extends Controller
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(User $user, Request $request, $id = null)
+    public function update(Request $request, Staff $staff)
     {
+        $user = $this->getUser()->id;
 
         try {
-            if ($user->hasRole('admin')) {
 
-                $inputs = request()->all();
-                $staff = Staff::findOrFail($request->id);
+            $staff->job_type = $request->job_type;
+            $staff->is_cv_submitted = $request->is_cv_submitted;
+            $staff->is_edu_cert_submitted = $request->is_edu_cert_submitted;
+            $staff->is_exp_cert_submitted = $request->is_exp_cert_submitted;
+            $staff->save();
 
+            $staff_user = User::find($request->id);
+            $staff_user->first_name = $request->first_name;
+            $staff_user->last_name = $request->last_name;
+            $staff_user->email = $request->email;
+            $staff_user->address = $request->address;
+            $staff_user->phone1 = $request->phone1;
+            $staff_user->phone2 = $request->phone2;
+            $staff_user->gender = $request->gender;
+            $staff_user->religion = $request->religion;
+            $staff_user->lga_id = $request->lga_id;
+            $staff_user->state_id = $request->state_id;
+            $staff_user->country_id = $request->country_id;
+            $staff_user->save();
 
-                $staff->update($inputs);
-
-                // Flash::success('Staff information updated successfully');
-
-                if (request()->ajax()) {
-                    return 'true';
-                }
-
-                return redirect()->route('staff.index');
-            }
-            /*$staff = Staff::findOrFail($id);
-            $inputs = $request->all();
-
-            if ($request->hasFile('avatar')) {
-                // Unlink the old image
-                Storage::disk('public')->delete($staff->avatar);
-
-                $mime = $request->file('avatar')->getClientMimeType();
-                $name = "staff_".time().".".$request->file('avatar')->guessClientExtension();
-                $avatar = $request->file('avatar')->storeAs('staffs', $name, "public");
-                $inputs['$avatar'] = $avatar;
-                $inputs['mime'] = $mime;
-            }
-            $staff->update($inputs);
-            Flash::success('Staff information updated successfully');
-            return redirect()->route('staff.index');*/
+            return response()->json(compact('staff_user'), 200);
         } catch (ModelNotFoundException $ex) {
-            // Flash::error('Error: ' . $ex->getMessage());
-            return redirect()->route('staff.index');
+            return response()->json(compact('ex'), 500);
         }
     }
 

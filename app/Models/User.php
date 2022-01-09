@@ -61,6 +61,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Guardian::class);
     }
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
     public function state()
     {
         return $this->belongsTo(State::class);
@@ -199,8 +203,8 @@ class User extends Authenticatable
         }
         if ($action == 'update') {
 
-
-            $user = User::where('username', $username)->first();
+            $user_id  = $request->parent_user_id;
+            $user = User::find($user_id);
             $user->gender = ($request->sponsor_gender) ? $request->sponsor_gender : 'male';
             $user->photo = photoPath($request->school, ['type' => 'default', 'file' => strtolower($request->gender) . '.png']);
             //$user->mime = $request->mime;
@@ -216,6 +220,7 @@ class User extends Authenticatable
 
             $user->lga_id = $request->lga_id;
             $user->state_id = $request->state_id;
+            $user->country_id = $request->country_id;
             $user->save();
 
             return $user->id;
@@ -302,7 +307,7 @@ class User extends Authenticatable
 
         if ($action == 'update') {
             //this is the students.id from students table
-            $id = $request->id;
+            $id = $request->student_id;
             $student = Student::findOrFail($id);
 
             //get the users.id from the students table
@@ -310,12 +315,9 @@ class User extends Authenticatable
             $this->dob = date('Y-m-d', strtotime($request->dob));
 
             //retrieve  user fields to perform update action
-            $user = User::findOrFail($this->id);
-            $update_data_array = json_decode($this, 1);
-            $user->where('id', $this->id)
-                ->update($update_data_array);
+            $this->save();
 
-            return $user->id;
+            return $this->id;
         } else {
             $this->dob = date('Y-m-d', strtotime($request->dob));
             $this->username = $username;

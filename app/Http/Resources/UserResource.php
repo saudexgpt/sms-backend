@@ -45,7 +45,7 @@ class UserResource extends JsonResource
             'student' => $this->student,
             'guardian' => $this->guardian,
             'staff' => $this->staff,
-            // 'address' => $this->staff->address,
+            'password_status' => $this->password_status,
             'notifications' => [],
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),
             'roles' => $rights,

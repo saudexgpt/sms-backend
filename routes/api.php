@@ -65,6 +65,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     // Protected routes for authenticated users
     Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
+    Route::get('notification/mark-as-read', [UsersController::class, 'markNotificationAsRead']);
 
     // Access Control Roles & Permission
     Route::group(['prefix' => 'acl'], function () {
@@ -338,16 +339,19 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('all-students-table', [StudentsController::class, 'allStudentsTable']);
         Route::get('students/create', [StudentsController::class, 'create']);
         Route::post('students/store', [StudentsController::class, 'store']);
+        Route::put('students/update/{student_in_class}', [StudentsController::class, 'update']);
         Route::get('students/show/{student}', [StudentsController::class, 'show']);
         Route::post('students/upload/bulk', [StudentsController::class, 'uploadBulkStudents']);
 
         Route::get('admin-reset/password', [UsersController::class, 'adminResetUserPassword']);
+        Route::put('reset/password/{user}', [UsersController::class, 'resetPassword']);
 
         // Route::resource('staff', StaffController::class);
         Route::get('staff', [StaffController::class, 'index']);
         Route::get('staff/create', [StaffController::class, 'create']);
         Route::post('staff/store', [StaffController::class, 'store']);
         Route::get('staff/show/{staff}', [StaffController::class, 'show']);
+        Route::put('staff/update/{staff}', [StaffController::class, 'update']);
 
         Route::get('guardians', [GuardiansController::class, 'index']);
         Route::get('guardian/show/{guardian}', [GuardiansController::class, 'show']);

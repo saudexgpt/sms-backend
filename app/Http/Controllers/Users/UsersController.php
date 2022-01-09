@@ -14,6 +14,23 @@ use Laracasts\Flash\Flash;
 
 class UsersController extends Controller
 {
+    public function userNotifications()
+    {
+        $user = $this->getUser();
+        $notifications = $user->notifications()->orderBy('created_at', 'DESC')->take(20)->get();
+        $unread_notifications = $user->unreadNotifications()->count();
+        // if ($notifications->isEmpty()) {
+        //     $notifications = $user->notifications()->orderBy('created_at', 'DESC')->take(20)->get();
+        //     // $notifications =
+        // }
+        return response()->json(compact('notifications', 'unread_notifications'), 200);
+    }
+    public function markNotificationAsRead()
+    {
+        $user = $this->getUser();
+        $user->unreadNotifications->markAsRead();
+        return $this->userNotifications();
+    }
     public function changePassword()
     {
         $user = $this->getUser();
@@ -28,27 +45,22 @@ class UsersController extends Controller
         $user->password_status = 'default';
         $user->save();
     }
-    public function resetPassword(Request $request, $id)
+    public function resetPassword(Request $request, User $user)
     {
+        $confirm_password = $request->confirm_password;
+        $new_password = $request->new_password;
 
-        $user = User::find($id);
-
-        $password = $request->password;
-        $password_confirmation = $request->password_confirmation;
-        $gender = $request->gender;
-
-        if ($password == $password_confirmation) {
-            $user->password = $password;
+        if ($new_password === $confirm_password) {
+            $user->password = $new_password;
             $user->password_status = 'custom';
-            $user->gender = $gender;
 
             if ($user->save()) {
-                Flash::success('Password Updated Successfully');
-                return redirect()->route('dashboard');
+                return response()->json(['message' => 'success'], 200);
             }
         }
-        Flash::error('Password does not match');
-        return redirect()->route('dashboard');
+        return response()->json([
+            'message' => 'Password does not match'
+        ], 401);
     }
     /**
      * Create a new controller instance.
