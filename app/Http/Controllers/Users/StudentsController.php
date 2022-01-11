@@ -217,14 +217,14 @@ class StudentsController extends Controller
                 $request->last_name = trim($csvRow->SURNAME);
                 $request->first_name = trim($csvRow->OTHER_NAMES);
                 $request->gender = trim(strtolower($csvRow->GENDER));
-                $request->dob = trim(date('Y-m-d', strtotime($csvRow->DOB)));
+                $request->dob = trim($csvRow->DOB);
 
                 $request->admission_year    =   trim($csvRow->ADMISSION_YEAR);
 
                 $request->fname             =   trim($csvRow->PARENT_FIRST_NAME);
                 $request->lname             =   trim($csvRow->PARENT_LAST_NAME);
                 $request->parent_phone      =   trim($csvRow->PARENT_PHONE_1);
-                $request->parent_phone2     =   trim($csvRow->PARENT_PHONE_2);
+                $request->parent_phone2     =   (isset($csvRow->PARENT_PHONE_2)) ? trim($csvRow->PARENT_PHONE_2) : NULL;
                 $request->email             =   trim($csvRow->PARENT_EMAIL);
                 $request->occupation        =   trim($csvRow->PARENT_OCCUPATION);
                 $request->address           =   trim($csvRow->RESIDENTIAL_ADDRESS);
