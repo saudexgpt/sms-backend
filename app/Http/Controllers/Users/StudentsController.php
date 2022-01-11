@@ -233,7 +233,7 @@ class StudentsController extends Controller
                 //store the entry for this student
                 $this->store($request);
             } catch (\Throwable $th) {
-                return response()->json($th);
+                // return response()->json($th);
             }
         }
     }
