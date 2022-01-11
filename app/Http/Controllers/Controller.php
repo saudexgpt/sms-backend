@@ -540,8 +540,18 @@ class Controller extends BaseController
     }
 
 
-    public function uploadFile()
+    private function uploadFile($media, $file_name, $folder_key)
     {
+        $subdomain = ""; //School::where('folder_key', $folder_key)->first()->sub_domain;
+        $storage_subfolder = ''; //'storage/';//$subdomain.'/storage/';
+
+        $folder = "schools/" . $folder_key;
+
+        $upload_directory = $storage_subfolder . $folder;
+
+        $photo = $media->storeAs($upload_directory, $file_name, 'public');
+
+        return $folder . '/' . $file_name;
     }
 
     public function auditTrailEvent($request, $action)

@@ -210,9 +210,9 @@ class StudentsController extends Controller
         $bulk_data = json_decode(json_encode($request->bulk_data));
         // $level_id = $request->level_id;
         // $class_teacher_id = $request->class_teacher_id;
-        try {
-            foreach ($bulk_data as $csvRow) {
 
+        foreach ($bulk_data as $csvRow) {
+            try {
 
                 $request->last_name = trim($csvRow->SURNAME);
                 $request->first_name = trim($csvRow->OTHER_NAMES);
@@ -232,9 +232,9 @@ class StudentsController extends Controller
 
                 //store the entry for this student
                 $this->store($request);
+            } catch (\Throwable $th) {
+                return response()->json($th);
             }
-        } catch (\Throwable $th) {
-            return response()->json($th);
         }
     }
 

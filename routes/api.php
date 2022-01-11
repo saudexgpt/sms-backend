@@ -10,6 +10,8 @@ use App\Http\Controllers\CurriculumCategoryController;
 use App\Http\Controllers\DashboardsController;
 use App\Http\Controllers\LMS\ClassroomsController;
 use App\Http\Controllers\LMS\QuizController;
+use App\Http\Controllers\Materials\CurriculaController;
+use App\Http\Controllers\Materials\MaterialsController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Result\GradesController;
 use App\Http\Controllers\Result\ResultDisplaySettingsController;
@@ -174,6 +176,15 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 
         // });
+    });
+    Route::group(['prefix' => 'materials'], function () {
+        Route::get('/teacher-curriculum', [CurriculaController::class, 'teacherCurriculum']);
+        Route::post('/save-curriculum', [CurriculaController::class, 'store']);
+
+        Route::get('/teacher/subject-materials', [MaterialsController::class, 'teacherSubjectMaterials']);
+        Route::post('/store', [MaterialsController::class, 'store']);
+        Route::get('/subject-materials/{subject_teacher}', [MaterialsController::class, 'subjectMaterials']);
+        Route::delete('/delete/{id}', [MaterialsController::class, 'destroy']);
     });
     Route::group(['prefix' => 'lms'], function () {
         Route::get('quiz', [QuizController::class, 'quiz']);

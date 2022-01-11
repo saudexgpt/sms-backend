@@ -198,7 +198,7 @@ class ClassroomsController extends Controller
             $file_name = time() . "." . $media->guessClientExtension();
             // $folder_key = $request->folder_key . DIRECTORY_SEPARATOR . "photo" . DIRECTORY_SEPARATOR . $role;
             $folder_key = $school->folder_key . '/' . "classroom";
-            $photo =  $this->uploadClassFile($media, $file_name, $folder_key);
+            $photo =  $this->uploadFile($media, $file_name, $folder_key);
 
             $daily_class_room_material = new DailyClassroomMaterial();
             $daily_class_room_material->daily_classroom_id = $daily_classroom_id;
@@ -215,19 +215,6 @@ class ClassroomsController extends Controller
         }
     }
 
-    private function uploadClassFile($media, $file_name, $folder_key)
-    {
-        $subdomain = ""; //School::where('folder_key', $folder_key)->first()->sub_domain;
-        $storage_subfolder = ''; //'storage/';//$subdomain.'/storage/';
-
-        $folder = "schools/" . $folder_key;
-
-        $upload_directory = $storage_subfolder . $folder;
-
-        $photo = $media->storeAs($upload_directory, $file_name, 'public');
-
-        return $photo_name = $folder . '/' . $file_name;
-    }
     public function updateOnlineClassNote(Request $request)
     {
         $daily_classroom_id = $request->daily_classroom_id;
