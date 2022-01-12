@@ -410,27 +410,4 @@ class TeachersController extends Controller
         //dd(DB::getQueryLog());
         return $this->render('core::teachers.class_teachers', compact('teachers'));
     }
-
-    public function recordRatings(Request $request)
-    {
-        $school_id = $this->getSchool()->id;
-        $sess_id = $this->getSession()->id;
-        $term_id = $this->getTerm()->id;
-
-        $behavior_obj = new Behavior();
-        $skill_obj = new Skill();
-
-        $ratings = $request->ratings;
-        $value = $request->value;
-        $student_id = $request->student_id;
-        $field = $request->field;
-
-        if ($ratings == 'skill') {
-            $skill_obj->rateStudent($school_id, $sess_id, $term_id, $value, $student_id, $field);
-        }
-
-        if ($ratings == 'behaviour') {
-            $behavior_obj->rateStudent($school_id, $sess_id, $term_id, $value, $student_id, $field);
-        }
-    }
 }

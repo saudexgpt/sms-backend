@@ -280,47 +280,65 @@ class SubjectsController extends Controller
         $curricula = Curriculum::where('subject_id', $subjectId)->get();
         return $this->render('core::subjects.curricula', compact('curricula'));
     }
-
-    public function addSubjectStudents(Request $request)
+    public function mySubjectStudents(Request $request)
     {
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $school_id = $this->getSchool()->id;
 
-        $class = $request->class;
-        $subject = $request->subject;
         $subject_teacher_id = $request->subject_teacher_id;
-
-        $student_offering_subjects = StudentsOfferingSubject::where([
-            'subject_teacher_id' => $subject_teacher_id,
+        $subject_teacher = SubjectTeacher::with(['classTeacher.c_class', 'staff', 'subject'])->find($subject_teacher_id);
+        $class_teacher_id = $subject_teacher->class_teacher_id;
+        $students_in_class = StudentsInClass::with('student.user')->where([
+            'school_id' => $school_id,
             'sess_id' => $sess_id,
-            'term_id' => $term_id,
-            'school_id' => $school_id
-        ])->first();
+            'class_teacher_id' => $class_teacher_id,
+        ])->get();
 
-        //in array format so we implode to string
-        $student_ids = implode('~', $request->student_ids);
-        $existing_subject_students = "";
-        if ($student_offering_subjects) {
-            $existing_subject_students = $student_offering_subjects->student_ids;
-        } else {
-            $student_offering_subjects = new StudentsOfferingSubject();
-            $student_offering_subjects->sess_id = $sess_id;
-            $student_offering_subjects->term_id = $term_id;
-            $student_offering_subjects->school_id = $school_id;
-            $student_offering_subjects->subject_teacher_id = $subject_teacher_id;
+        $all_students = [];
+        $registered_class_students = [];
+        $unregistered_class_students = [];
+        foreach ($students_in_class as $student_in_class) :
+            $all_students[] = $student_in_class->student;
+            $student_offering_subject = StudentsOfferingSubject::where([
+                'subject_teacher_id' => $subject_teacher_id,
+                'sess_id' => $sess_id,
+                'school_id' => $school_id,
+                'student_id' => $student_in_class->student_id
+            ])->first();
+
+            if ($student_offering_subject) {
+                $registered_class_students[] = $student_in_class->student;
+            } else {
+                $unregistered_class_students[] = $student_in_class->student;
+            }
+
+        endforeach;
+
+        return response()->json(compact('all_students', 'registered_class_students', 'subject_teacher', 'unregistered_class_students'), 200);
+    }
+    public function manageSubjectStudents(Request $request)
+    {
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+        $school_id = $this->getSchool()->id;
+        $student_offering_subjects_obj =  new StudentsOfferingSubject();
+
+        $subject_teacher_id = $request->subject_teacher_id;
+        $registered_class_students =  $request->registered_class_students;
+        $unregistered_class_students =  $request->unregistered_class_students;
+        foreach ($registered_class_students as $registered_class_student) {
+            $student_id = $registered_class_student['id'];
+
+            $student_offering_subjects_obj->addStudentToSubjectClass($student_id, $subject_teacher_id, $sess_id, $term_id, $school_id);
+        }
+        foreach ($unregistered_class_students as $unregistered_class_student) {
+            $student_id = $unregistered_class_student['id'];
+
+            $student_offering_subjects_obj->removeStudentFromSubjectClass($student_id, $subject_teacher_id, $sess_id, $term_id, $school_id);
         }
 
-
-        $new_student_ids = addSingleElementToString($existing_subject_students, $student_ids);
-
-        $student_offering_subjects->student_ids = $new_student_ids;
-
-        $student_offering_subjects->save();
-
-        //return 'success';
-
-        return redirect()->route('teacher_subject_students', ['subject' => $subject, 'class' => $class, 'id' => $subject_teacher_id]);
+        return response()->json([], 204);
     }
     public function subjectTeachersSubjects()
     {

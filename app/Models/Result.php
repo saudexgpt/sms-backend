@@ -85,14 +85,19 @@ class Result extends Model
         return $result;
     }
 
-    public function processResultInfo($student_grade, $grades, $result_settings)
+    public function processResultInfo($student_grade, $grades, $result_settings, $options)
     {
+        $sub_term = $options['sub_term'];
         $test = $this->addCaScores($student_grade, $result_settings);
 
         $exam =  $student_grade->exam;
 
+        if ($sub_term == 'half') {
+            $total = $student_grade->mid_term;
+        } else {
+            $total = $this->addScores($test, $exam);
+        }
 
-        $total = $this->addScores($test, $exam);
 
         list($result_grade, $color, $grade_point) = $this->resultGrade($total, $grades);
 
@@ -258,7 +263,7 @@ class Result extends Model
         return array($view_half, $view_full, $status_half, $status_full);
     }
 
-    public function subjectStudentPerformance($result_details, $grades, $result_settings)
+    public function subjectStudentPerformance($result_details, $grades, $result_settings, $options)
     {
         $subject_class_average = 0;
         $male_average = 0;
@@ -275,7 +280,7 @@ class Result extends Model
         $subject_totals = [];
         foreach ($result_details as $result_detail) {
             $count++;
-            list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($result_detail, $grades, $result_settings);
+            list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($result_detail, $grades, $result_settings, $options);
             if ($total >= $subject_highest_score) {
                 $subject_highest_score = $total;
             }
@@ -345,7 +350,7 @@ class Result extends Model
 
             // $student_result->result_action_array = array($view_half, $view_full, $status_half, $status_full);
             //$total_for_avg = $total_for_avg+$student_result->total;
-            list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($student_result, $grades, $result_settings);
+            list($test, $total, $result_grade, $color, $grade_point) = $this->processResultInfo($student_result, $grades, $result_settings, $options);
 
 
             //fetch the performance of students for each subject in this class
@@ -353,10 +358,11 @@ class Result extends Model
                 'subject_teacher_id' => $subject_teacher_id,
                 'school_id' => $options['school_id'],
                 'sess_id' => $options['sess_id'],
-                'term_id' => $options['term']
+                'term_id' => $options['term'],
+                'result_status' => 'Applicable'
             ])->get();
 
-            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $this->subjectStudentPerformance($subject_result_details, $grades, $result_settings);
+            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $this->subjectStudentPerformance($subject_result_details, $grades, $result_settings, $options);
 
             $student_result->test = $test;
             $student_result->total = $total;
@@ -394,65 +400,78 @@ class Result extends Model
         $sub_term = $options['sub_term'];
         $result_settings = $options['result_settings'];
 
-
-        $result_details = Result::with('subjectTeacher.subject')->where(
-            [
-                'class_teacher_id' => $class_teacher_id,
-                'school_id' => $school_id,
-                'sess_id' => $sess_id,
-                'term_id' => $term_id,
-                'student_id' => $student_id,
-                'result_status' => 'Applicable'
-            ]
-        )->orderBy('subject_teacher_id')->get();
+        $class_subjects = SubjectTeacher::with('subject')->where([
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id
+        ])->orderBy('id')->get();
 
         $result_details_array = [];
-        if ($result_details->isNotEmpty()) {
+        if ($class_subjects->isNotEmpty()) {
 
             $total_score = 0;
 
             $count = 0;
+            $result_details = [];
+            foreach ($class_subjects as $subject_teacher) :
 
-            foreach ($result_details as $student_result) :
+                $total = null;
+                $color = '';
+                $grade_point = null;
+                $student_result = Result::with('subjectTeacher.subject')->where(
+                    [
+                        'subject_teacher_id' => $subject_teacher->id,
+                        'school_id' => $school_id,
+                        'sess_id' => $sess_id,
+                        'term_id' => $term_id,
+                        'student_id' => $student_id,
+                        'result_status' => 'Applicable'
+                    ]
+                )->first();
 
-                $sub_id = $student_result->subject_teacher_id;
-                // check if result has been approved or not
+                $sub_id = $subject_teacher->id;
+                $subject_name = $subject_teacher->subject->code;
 
-                list($view_half, $view_full, $status_half, $status_full) = $this->resultStatusAction(($student_result) ? $student_result : null);
-                $viewable = ['approved', 'published'];
-                // if (($sub_term == 'half' && in_array($status_half, $viewable)) || ($sub_term == 'full' && in_array($status_full, $viewable))) {
-
-                $subject_name = ($student_result->subjectTeacher) ? $student_result->subjectTeacher->subject->code : '';
-                $total = $student_result->total;
-
-
-                if ($sub_term == 'half') {
-                    //we want to calculate the total ca for half term and convert to its equivalent 100%
-                    // $total_ca = $student_result->ca1 + $student_result->ca2;
-                    // $total = scoreInPercentage($total_ca, 30);
-                    $total = $student_result->mid_term;
-                }
-
-
-                list($grade, $color, $grade_point) = $this->resultGrade($total, $grades);
-
-                // if ($sub_term == 'half') {
-                //     //return to the normal value
-                //     $total_ca = $student_result->ca1 + $student_result->ca2;
-                //     $total = $total_ca;
-                // }
-                if ($total != null) {
-                    $count++;
-                    $total_score += $total;
-                }
                 $subjects[$sub_id] = $subject_name;
+                if ($student_result) {
+                    # code...
 
-                $student_result->total = $total;
-                $student_result->color = $color;
-                $student_result->grade_point = $grade_point;
+                    // check if result has been approved or not
 
-                $result_details_array[] = ['name' => $subject_name, 'grade' => $total];
-            // }
+                    // list($view_half, $view_full, $status_half, $status_full) = $this->resultStatusAction(($student_result) ? $student_result : null);
+                    // $viewable = ['approved', 'published'];
+                    // if (($sub_term == 'half' && in_array($status_half, $viewable)) || ($sub_term == 'full' && in_array($status_full, $viewable))) {
+
+
+                    $total = $student_result->total;
+
+
+                    if ($sub_term == 'half') {
+                        //we want to calculate the total ca for half term and convert to its equivalent 100%
+                        // $total_ca = $student_result->ca1 + $student_result->ca2;
+                        // $total = scoreInPercentage($total_ca, 30);
+                        $total = $student_result->mid_term;
+                    }
+
+
+                    list($grade, $color, $grade_point) = $this->resultGrade($total, $grades);
+
+                    // if ($sub_term == 'half') {
+                    //     //return to the normal value
+                    //     $total_ca = $student_result->ca1 + $student_result->ca2;
+                    //     $total = $total_ca;
+                    // }
+                    if ($total != null) {
+                        $count++;
+                        $total_score += $total;
+                    }
+
+                    $student_result->total = $total;
+                    $student_result->color = $color;
+                    $student_result->grade_point = $grade_point;
+                    $result_details[] = $student_result;
+                }
+
+                $result_details_array[] = ['name' => $subject_name, 'color' => $color, 'total' => $total, 'grade_point' => $grade_point];
             endforeach;
 
             $student->result_details = $result_details;
@@ -495,7 +514,7 @@ class Result extends Model
     public function analyzeTeacherPerformance($teacher_id, $sess_id, $grades)
     {
 
-        $subject_teacher_ids = Result::distinct()->where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id])
+        $subject_teacher_ids = Result::distinct()->where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'result_status' => 'Applicable'])
             ->orderBy('subject_teacher_id')->pluck('subject_teacher_id');
 
         $subject_averages = [];
@@ -504,7 +523,7 @@ class Result extends Model
         if ($subject_teacher_ids != '[]') {
             foreach ($subject_teacher_ids as $subject_teacher_id) {
                 $subject_teacher = SubjectTeacher::with('subject')->findOrFail($subject_teacher_id);
-                $average = Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'subject_teacher_id' => $subject_teacher_id])->where('exam', '!=', null)->avg('total');
+                $average = Result::where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'subject_teacher_id' => $subject_teacher_id, 'result_status' => 'Applicable'])->where('exam', '!=', null)->avg('total');
 
                 list($grade, $color, $grade_point) = $this->resultGrade($average, $grades);
                 $subject_teacher->subject_average =  (float) sprintf("%01.1f", $average);
@@ -532,7 +551,7 @@ class Result extends Model
     public function analyzeTeacherTermlySubjectPerformance($teacher_id, $school_id, $sess_id, $term_id)
     {
 
-        $results = Result::groupBy('subject_teacher_id')->with('subjectTeacher.subject', 'classTeacher.c_class')->where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'school_id' => $school_id, 'term_id' => $term_id])->where('exam', '!=', null)->orderBy('sess_id')->select('*', \DB::raw('AVG(total) as average'))->get();
+        $results = Result::groupBy('subject_teacher_id')->with('subjectTeacher.subject', 'classTeacher.c_class')->where(['recorded_by' => $teacher_id, 'sess_id' => $sess_id, 'school_id' => $school_id, 'term_id' => $term_id, 'result_status' => 'Applicable'])->where('exam', '!=', null)->orderBy('sess_id')->select('*', \DB::raw('AVG(total) as average'))->get();
 
         return $results;
     }

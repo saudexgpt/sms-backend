@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Setup;
 
 use App\Http\Controllers\Controller;
+use App\Models\Behavior;
 use App\Models\CClass;
 use App\Models\ClassTeacher;
 use App\Models\Level;
 use App\Models\Section;
+use App\Models\Skill;
 use App\Models\Staff;
 use App\Models\StaffRole;
 use App\Models\Student;
@@ -264,12 +266,17 @@ class ClassesController extends Controller
     {
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
         $class_teacher_id = $request->class_teacher_id;
 
         $students_in_class = StudentsInClass::with([
             'classTeacher.subjectTeachers.subject',
             'classTeacher.c_class',
-            'student.studentGuardian.guardian.user', 'student.user', 'classTeacher.c_class'
+            'student.studentGuardian.guardian.user', 'student.user', 'classTeacher.c_class', 'student.behavior' => function ($q) use ($school_id, $sess_id, $term_id) {
+                $q->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id]);
+            }, 'student.skill' => function ($q) use ($school_id, $sess_id, $term_id) {
+                $q->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id]);
+            },
         ])->where([
             'class_teacher_id' => $class_teacher_id,
             'school_id' => $school_id,
@@ -324,5 +331,28 @@ class ClassesController extends Controller
         $class_teachers = $teacher->teacherClasses($staff->id, $school_id);
         $teacher = $staff->user->first_name . ' ' . $staff->user->last_name;
         return $this->render(compact('class_teachers', 'teacher'));
+    }
+
+    public function recordRatings(Request $request)
+    {
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+
+        $behavior_obj = new Behavior();
+        $skill_obj = new Skill();
+
+        $ratings = $request->ratings;
+        $value = $request->value;
+        $student_id = $request->student_id;
+        $field = $request->field;
+
+        if ($ratings == 'skill') {
+            $skill_obj->rateStudent($school_id, $sess_id, $term_id, $value, $student_id, $field);
+        }
+
+        if ($ratings == 'behaviour') {
+            $behavior_obj->rateStudent($school_id, $sess_id, $term_id, $value, $student_id, $field);
+        }
     }
 }

@@ -67,7 +67,7 @@ class MessagesController extends Controller
     public function inbox()
     {
         $user_id = $this->getUser()->id;
-        $messages = Message::where(function ($query) use ($user_id) {
+        $messages = Message::with('from', 'to')->where(function ($query) use ($user_id) {
             return $query->where('recipient', '=', $user_id)
                 ->orWhere('copied_to', 'LIKE', '%~' . $user_id . '~%');
         })->where(function ($query) use ($user_id) {
@@ -84,11 +84,7 @@ class MessagesController extends Controller
         list($options, $recipients) = $this->extraOptions();
 
         $type = 'Inbox';
-        if (request()->ajax()) {
-
-            return $this->render('messages.message', compact('messages', 'options', 'recipients', 'type'));
-        }
-        return $this->render('messages.index', compact('messages', 'options', 'recipients', 'type'));
+        return response()->json(compact('messages', 'options', 'recipients', 'type'), 200);
     }
 
     /**
@@ -96,7 +92,7 @@ class MessagesController extends Controller
      */
     public function sent()
     {
-        $messages = Message::where('sender', $this->getUser()->id)
+        $messages = Message::with('from', 'to')->where('sender', $this->getUser()->id)
             ->where('sender_delete', '=', NULL)
             ->orderBy('created_at', 'DESC')->get();
 

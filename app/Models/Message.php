@@ -22,14 +22,16 @@ class Message extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function sentBy() {
+    public function from()
+    {
         return $this->belongsTo(User::class, 'sender', 'id');
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function recievedBy() {
+    public function to()
+    {
         return $this->belongsTo(User::class, 'recipient', 'id');
     }
 }

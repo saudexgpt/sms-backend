@@ -132,6 +132,20 @@ class Student extends Model
         return $this->hasMany(Skill::class);
     }
 
+    public function behavior()
+    {
+        return $this->hasOne(Behavior::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     *The return value is in array form and a foreach loop should be used to fetch each element
+     */
+    public function skill()
+    {
+        return $this->hasOne(Skill::class);
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      *The return value is in array form and a foreach loop should be used to fetch each element

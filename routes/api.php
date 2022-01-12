@@ -12,6 +12,7 @@ use App\Http\Controllers\LMS\ClassroomsController;
 use App\Http\Controllers\LMS\QuizController;
 use App\Http\Controllers\Materials\CurriculaController;
 use App\Http\Controllers\Materials\MaterialsController;
+use App\Http\Controllers\Messages\MessagesController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Result\GradesController;
 use App\Http\Controllers\Result\ResultDisplaySettingsController;
@@ -99,7 +100,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::put('update/{event}', [EventsController::class, 'updateEvent']);
     });
 
+    Route::group(['prefix' => 'messages'], function () {
 
+        Route::get('/', [MessagesController::class, 'index']);
+        Route::post('add-event', [MessagesController::class, 'addEvent']);
+        Route::delete('delete/{event}', [MessagesController::class, 'deleteEvent']);
+        Route::put('update/{event}', [MessagesController::class, 'updateEvent']);
+    });
 
     Route::group(['prefix' => 'curriculum'], function () {
         Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
@@ -306,9 +313,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('session/store', [SessionsController::class, 'store']);
         Route::put('toggle-session-activation/{id}', [SessionsController::class, 'toggleSessionActivation']);
         /////////////////////////////////////////////////////////////////////////////////////////////
-
+        Route::get('my-subject-students', [SubjectsController::class, 'mySubjectStudents']);
+        Route::post('manage-subject-students', [SubjectsController::class, 'manageSubjectStudents']);
         Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
         Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
+        Route::post('record-ratings', [ClassesController::class, 'recordRatings']);
     });
 
     Route::group(['prefix' => 'teacher'], function () {

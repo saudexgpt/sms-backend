@@ -192,7 +192,7 @@ class ResultsController extends Controller
 
     //     $active_assessment = $sub_term;
 
-    //     $class_students = $teacher->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
+    //     $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
 
     //     $students = [];
     //     $empty_half_record = 0;
@@ -283,7 +283,7 @@ class ResultsController extends Controller
 
         $active_assessment = $sub_term;
 
-        $class_students = $teacher->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
+        $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
 
         $students = [];
         $empty_half_record = 0;
@@ -460,7 +460,7 @@ class ResultsController extends Controller
         $this->saveMidTermScore($student_result_detail, $result_settings);
         // return $student_result_detail;
         $teacher = new Teacher();
-        $class_students = $teacher->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
+        $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
 
         $students = [];
         $empty_half_record = 0;
@@ -604,7 +604,7 @@ class ResultsController extends Controller
 
         $action = $request->action;
 
-        $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'subject_teacher_id' => $subject_teacher_id, 'school_id' => $school_id])->get();
+        $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'subject_teacher_id' => $subject_teacher_id, 'school_id' => $school_id, 'result_status' => 'Applicable'])->get();
 
         foreach ($results as $result) {
             if ($assessment === 'half') {
@@ -735,10 +735,14 @@ class ResultsController extends Controller
                     'grades' => $grades,
                     'result_settings' => $result_settings,
                 ];
-                $student_result = $result->analyseStudentsResult($student_in_class->student, $options);
+                $student_result = $result->analyseStudentsResult($student, $options);
 
                 $result_averages[$student_in_class->student_id] = $student_result->average; //keep the averages for each student in an array to eable ranking
                 //if(!empty($student_result->subjects)){
+                // $result_subjects = SubjectTeacher::with('subject')->where([
+                //     'class_teacher_id' => $class_teacher_id,
+                //     'school_id' => $school_id
+                // ])->orderBy('id')->get();
                 $result_subjects = array_unique(array_merge($result_subjects, $student_result->subjects));
                 //}
 
@@ -884,7 +888,8 @@ class ResultsController extends Controller
                 'school_id' => $school_id,
                 'sess_id' => $sess_id,
                 'term_id' => $term_id,
-                'student_id' => $student_id
+                'student_id' => $student_id,
+                'result_status' => 'Applicable'
             ]
         )->get();
 
@@ -982,7 +987,7 @@ class ResultsController extends Controller
             $class_event = 0;
             foreach ($subject_teachers as $subject_teacher) :
 
-                $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'school_id' => $school_id, 'subject_teacher_id' => $subject_teacher->id])->get();
+                $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'school_id' => $school_id, 'subject_teacher_id' => $subject_teacher->id, 'result_status' => 'Applicable'])->get();
 
                 $id = $subject_teacher->id;
 
@@ -1032,7 +1037,7 @@ class ResultsController extends Controller
                 }
                 $subject_teacher_id = $subject_teacher->id;
                 $teacher = new Teacher();
-                $class_students = $teacher->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
+                $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
 
                 $students = [];
                 if (!empty($class_students)) {
@@ -1086,12 +1091,22 @@ class ResultsController extends Controller
         $curriculum_level_group_id = $class_details->level->levelGroup->id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
+        $options = [
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+            'term' => $term_id,
+            'sub_term' => $sub_term,
+            'grades' => $grades,
+            'result_settings' => $result_settings,
+        ];
         $result_details = Result::where([
             'subject_teacher_id' => $subject_teacher_id,
             'class_teacher_id' => $class_teacher_id,
             'school_id' => $school_id,
             'sess_id' => $sess_id,
-            'term_id' => $term_id
+            'term_id' => $term_id,
+            'result_status' => 'Applicable'
         ])
             ->orderBy('total', 'DESC')->get();
 
@@ -1101,7 +1116,7 @@ class ResultsController extends Controller
             $result_details_array = [];
             foreach ($result_details as $student_result) :
 
-                list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings);
+                list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings, $options);
 
                 $student_result->test = $test;
                 $student_result->result_grade = $result_grade;
@@ -1202,7 +1217,8 @@ class ResultsController extends Controller
                         'school_id' => $school_id,
                         'sess_id' => $sess_id,
                         'term_id' => $term_id,
-                        'student_id' => $student_id
+                        'student_id' => $student_id,
+                        'result_status' => 'Applicable',
                     ]
                 )->get();
 
@@ -1217,7 +1233,7 @@ class ResultsController extends Controller
 
                         $subject_name = SubjectTeacher::find($student_result->subject_teacher_id)->subject->code;
 
-                        list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings);
+                        list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings, $options);
 
 
                         $result_details_array[] = ['name' => $subject_name, 'grade' => $total];
