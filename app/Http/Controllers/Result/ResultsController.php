@@ -323,7 +323,9 @@ class ResultsController extends Controller
         }
         $subject_teacher->empty_half_record = $empty_half_record;
         $subject_teacher->empty_full_record = $empty_full_record;
-        $data = compact('students', 'subject_teacher_id', 'active_assessment', 'edit_midterm', 'edit_exam', 'result_action_array', 'subject_teacher', 'class', 'term_id', 'sess_id', 'result_settings');
+        $term = Term::find($term_id);
+        $session = SSession::find($sess_id);
+        $data = compact('students', 'subject_teacher_id', 'active_assessment', 'edit_midterm', 'edit_exam', 'result_action_array', 'subject_teacher', 'class', 'term_id', 'sess_id', 'term', 'session', 'result_settings');
 
         $csv = false;
         if (isset($request->csv) && ($request->csv == 'true')) {
