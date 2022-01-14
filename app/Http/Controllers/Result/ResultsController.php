@@ -332,7 +332,7 @@ class ResultsController extends Controller
             $csv = true;
             $data['csv'] = $csv;
         }
-        return response()->json($data, 200);
+        return $this->render($data);
     }
     private function analyzeProgress($result_detail, $result_settings)
     {

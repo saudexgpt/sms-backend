@@ -46,6 +46,26 @@ class SchoolsController extends Controller
         return redirect()->route('student_reg_pin');*/
     }
 
+
+    public function saveGeneralSettings(Request $request, School $school)
+    {
+        // $school = $this->getSchool();
+        if (isset($request->navbar_bg)) {
+
+            $school->navbar_bg = $request->navbar_bg;
+        }
+        if (isset($request->sidebar_bg)) {
+
+            $school->sidebar_bg = $request->sidebar_bg;
+        }
+        // $school->main_bg = $request->main_bg;
+        // $school->logo_bg = $request->logo_bg;
+        // $school->display_student_position = $request->display_student_position;
+
+        $school->save();
+        return 'success';
+    }
+
     /**
      * @param SchoolRequest $request
      * @param School $school
@@ -319,7 +339,11 @@ class SchoolsController extends Controller
             $mime = $request->file('sch_logo')->getClientMimeType();
 
             if ($mime == 'image/png' || $mime == 'image/jpeg' || $mime == 'image/jpg' || $mime == 'image/gif') {
-                $name = "school_logo." . $request->file('sch_logo')->guessClientExtension();
+                // delete older ones
+                if (Storage::disk('public')->exists($school->logo)) {
+                    Storage::disk('public')->delete($school->logo);
+                }
+                $name = "school_logo_" . time() . "." . $request->file('sch_logo')->guessClientExtension();
                 $folder_key = $school->folder_key;
                 $folder = "schools/" . $folder_key;
                 $logo = $request->file('sch_logo')->storeAs($folder, $name, 'public');
@@ -328,7 +352,7 @@ class SchoolsController extends Controller
                 $school->mime = $mime;
 
                 if ($school->save()) {
-                    return 'School Logo Updated';
+                    return $school->logo;
                 }
             }
         }

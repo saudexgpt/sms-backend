@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Result;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\ResultDisplaySetting;
+use Illuminate\Support\Facades\Storage;
 
 class ResultDisplaySettingsController extends Controller
 {
@@ -22,10 +23,12 @@ class ResultDisplaySettingsController extends Controller
         return response()->json(compact('result_setting'), 200);
     }
 
-    public function update(Request $request, ResultDisplaySetting $result_setting)
+    public function update(Request $request)
     {
-        $school_id = $this->getSchool()->id;
-        $curriculum_level_group_id = $request->curriculum_level_group_id;
+        // return $request;
+        $result_setting = ResultDisplaySetting::find($request->id);
+        $school = $this->getSchool();
+        // $curriculum_level_group_id = $request->curriculum_level_group_id;
         // $result_setting = ResultDisplaySetting::where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->first();
         $display_exam_score_only_for_full_term = $request->display_exam_score_only_for_full_term;
 
@@ -34,11 +37,11 @@ class ResultDisplaySettingsController extends Controller
         //     $exam = 100;
         // }
         $result_setting->no_of_ca = $request->no_of_ca;
-        $result_setting->ca1 = $request->ca1;
-        $result_setting->ca2 = $request->ca2;
-        $result_setting->ca3 = $request->ca3;
-        $result_setting->ca4 = $request->ca4;
-        $result_setting->ca5 = $request->ca5;
+        $result_setting->ca1 = ($request->ca1 !== 'null') ? $request->ca1 : NULL;
+        $result_setting->ca2 = ($request->ca2 !== 'null') ? $request->ca2 : NULL;
+        $result_setting->ca3 = ($request->ca3 !== 'null') ? $request->ca3 : NULL;
+        $result_setting->ca4 = ($request->ca4 !== 'null') ? $request->ca4 : NULL;
+        $result_setting->ca5 = ($request->ca5 !== 'null') ? $request->ca5 : NULL;
         $result_setting->exam = $exam;
         $result_setting->no_of_ca_for_midterm = $request->no_of_ca_for_midterm;
         $result_setting->display_exam_score_only_for_full_term = $display_exam_score_only_for_full_term;
@@ -48,10 +51,47 @@ class ResultDisplaySettingsController extends Controller
         $result_setting->display_average_score = $request->display_average_score;
         $result_setting->display_grade = $request->display_grade;
         $result_setting->display_student_behovior_and_skill_rating = $request->display_student_behovior_and_skill_rating;
+        $result_setting->display_logo_for_result_background = $request->display_logo_for_result_background;
+        $result_setting->display_school_name_on_result = $request->display_school_name_on_result;
+        $result_setting->display_school_address_on_result = $request->display_school_address_on_result;
+
+        if ($request->use_school_logo === 'yes') {
+            $result_setting->logo = $school->logo;
+        }
 
 
         $result_setting->save();
+        if ($request->file('result_logo') != null && $request->file('result_logo')->isValid()) {
 
+            $this->updateLogo($request, $result_setting);
+        }
         return response()->json(compact('result_setting'), 200);
+    }
+
+    private function updateLogo(Request $request, $result_setting)
+    {
+        $school = $this->getSchool();
+        if ($request->file('result_logo') != null && $request->file('result_logo')->isValid()) {
+
+
+            $mime = $request->file('result_logo')->getClientMimeType();
+
+            if ($mime == 'image/png' || $mime == 'image/jpeg' || $mime == 'image/jpg' || $mime == 'image/gif') {
+                // delete older ones
+                // if (Storage::disk('public')->exists($result_setting->logo)) {
+                //     Storage::disk('public')->delete($result_setting->logo);
+                // }
+                $name = "result_logo_" . $result_setting->id . '_' . time() . "." . $request->file('result_logo')->guessClientExtension();
+                $folder_key = $school->folder_key;
+                $folder = "schools/" . $folder_key;
+                $logo = $request->file('result_logo')->storeAs($folder, $name, 'public');
+
+                $result_setting->logo = $logo;
+
+                if ($result_setting->save()) {
+                    return $result_setting->logo;
+                }
+            }
+        }
     }
 }

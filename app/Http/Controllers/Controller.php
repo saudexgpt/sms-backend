@@ -727,24 +727,6 @@ class Controller extends BaseController
         $uniq_num_gen_obj = new UniqNumGen();
         $uniq_num_gen_obj->updateUniqNumDb($school_id, $role);
     }
-
-    public function saveGeneralSettings(Request $request)
-    {
-        $school = $this->getSchool();
-        $school->navbar_bg = $request->navbar_bg;
-        $school->sidebar_bg = $request->sidebar_bg;
-        $school->main_bg = $request->main_bg;
-        $school->logo_bg = $request->logo_bg;
-        $school->display_student_position = $request->display_student_position;
-
-        $school->save();
-        if ($request->ajax()) {
-
-            return "true";
-        }
-
-        return redirect()->back();
-    }
     public function accessDenied()
     {
         return $this->render('errors.403');

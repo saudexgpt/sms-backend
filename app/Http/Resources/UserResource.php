@@ -34,6 +34,16 @@ class UserResource extends JsonResource
         //     $this->allPermissions()->toArray()
         // );
         $rights = array_merge($roles, $user_role);
+        $school = '';
+        if ($this->student) {
+            $school  = $this->student->school;
+        }
+        if ($this->guardian) {
+            $school  = $this->guardian->school;
+        }
+        if ($this->staff) {
+            $school  = $this->staff->school;
+        }
         return [
             'id' => $this->id,
             'name' => $this->first_name . ' ' . $this->last_name,
@@ -45,6 +55,7 @@ class UserResource extends JsonResource
             'student' => $this->student,
             'guardian' => $this->guardian,
             'staff' => $this->staff,
+            'school' => $school,
             'password_status' => $this->password_status,
             'notifications' => [],
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),

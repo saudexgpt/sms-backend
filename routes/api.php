@@ -262,7 +262,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('get-student-result-details', [ResultsController::class, 'getStudentResultDetails']);
         Route::get('give-student-remark', [ResultsController::class, 'giveStudentRemark']);
         Route::get('fetch-result-display-settings', [ResultDisplaySettingsController::class, 'index']);
-        Route::put('update-result-display-settings/{result_setting}', [ResultDisplaySettingsController::class, 'update']);
+        Route::post('update-result-display-settings', [ResultDisplaySettingsController::class, 'update']);
 
 
         // Route::post('level-group/save', [CurriculumCategoryController::class, 'storeCurriculumLevelGroup']);
@@ -318,6 +318,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
         Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
         Route::post('record-ratings', [ClassesController::class, 'recordRatings']);
+        // update school logo
+        Route::post('update-logo', [SchoolsController::class, 'updateLogo']);
+        Route::put('update-color/{school}', [SchoolsController::class, 'saveGeneralSettings']);
     });
 
     Route::group(['prefix' => 'teacher'], function () {
