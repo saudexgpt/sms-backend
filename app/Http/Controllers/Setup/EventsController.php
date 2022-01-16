@@ -61,12 +61,12 @@ class EventsController extends Controller
 
         return $this->index();
     }
-    public function upcomingEvents(Event $events)
+    public function upcomingEvents()
     {
         $start_of_month = date('Y-m-d', strtotime(Carbon::now()->startOfMonth()));
         $user = $this->getUser();
         $school_id = $this->getSchool()->id;
-        $notifications = Event::where('school_id', $school_id)
+        $events = Event::where('school_id', $school_id)
             ->where('end', '>=', $start_of_month)
             ->where(function ($q) use ($user) {
                 return $q->where('targeted_audience', 'like', $user->role)
@@ -75,15 +75,15 @@ class EventsController extends Controller
                     ->orWhere('targeted_audience', 'like', '%~' . $user->role);
             })
             ->orderBy('id', 'DESC')->get();
-        if ($notifications != '[]') {
-            foreach ($notifications as $notification) {
+        if ($events != '[]') {
+            foreach ($events as $notification) {
 
                 $seen_by_array  = explode('~', $notification->seen_by);
 
                 $notification->seen_by_array = $seen_by_array;
             }
         }
-        return $this->render('core::events.upcoming_events', compact('notifications', 'user'));
+        return $this->render(compact('events', 'user'));
     }
     public function deleteEvent(Event $event)
     {

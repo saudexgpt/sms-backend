@@ -93,7 +93,7 @@ class StudentsInClass extends Model
     public function fetchStudentInClass($student_id, $sess_id, $term_id, $school_id)
     {
 
-        $student_in_class = StudentsInClass::where([
+        $student_in_class = StudentsInClass::with('classTeacher.c_class', 'classTeacher.subjectTeachers.subject')->where([
             'school_id' => $school_id,
             'sess_id' => $sess_id,
             'student_id' => $student_id,

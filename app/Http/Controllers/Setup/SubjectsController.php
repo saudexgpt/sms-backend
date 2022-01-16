@@ -254,17 +254,6 @@ class SubjectsController extends Controller
         // }
     }
 
-    public function subjects()
-    {
-        $subjects = Subject::join('classes', 'subjects.level_id', '=', 'classes.level')
-            ->join('students', 'classes.id', '=', 'students.class_id')
-            ->join('subject_teacher', 'subjects.id', '=', 'subject_teacher.subject_id')
-            ->join('teachers', 'subject_teacher.teacher_id', '=', 'teachers.id')
-            ->where('students.id', auth()->user()->account_holder_id)
-            ->select('subjects.id', 'subjects.name', 'teachers.first_name', 'teachers.last_name')->get();
-        return $this->render('core::subjects.subjects', compact('subjects'));
-    }
-
     public function materials($subjectId)
     {
         $subject = SubjectTeacher::find($subjectId);
@@ -350,5 +339,23 @@ class SubjectsController extends Controller
         $subject_teachers = $teacher->teacherSubjects($staff->id, $school_id);
         $teacher = $staff->user->first_name . ' ' . $staff->user->last_name;
         return $this->render(compact('subject_teachers', 'teacher'));
+    }
+
+    public function studentSubjects()
+    {
+        $student = $this->getStudent();
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+        $school_id = $this->getSchool()->id;
+        $student_in_class_obj = new StudentsInClass();
+        // $student_subjects = StudentsOfferingSubject::with('subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class')->where('student_id', $student->id)->get();
+
+        $student_in_class = $student_in_class_obj->fetchStudentInClass($student->id, $sess_id, $term_id, $school_id);
+        $subject_teachers = [];
+        if ($student_in_class) {
+
+            $subject_teachers = $student_in_class->classTeacher->subjectTeachers;
+        }
+        return $this->render(compact('subject_teachers'));
     }
 }

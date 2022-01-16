@@ -97,12 +97,12 @@ class Guardian extends Model
 
         try {
 
-            $guardian_details = Guardian::with('guardianWards.student')->find($id);
+            $guardian_details = Guardian::with('guardianStudents.student')->find($id);
 
 
 
             $wards = [];
-            foreach ($guardian_details->guardianWards as $guardianWard) {
+            foreach ($guardian_details->guardianStudents as $guardianWard) {
                 $student = $guardianWard->student; //Student::find($ward_id);
                 $student->parent_relationship = $guardianWard->relationship;
 

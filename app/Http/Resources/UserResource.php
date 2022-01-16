@@ -36,13 +36,13 @@ class UserResource extends JsonResource
         $rights = array_merge($roles, $user_role);
         $school = '';
         if ($this->student) {
-            $school  = $this->student->school;
+            $school  = $this->student->school()->with(['currentTerm', 'currentSession'])->first();
         }
         if ($this->guardian) {
-            $school  = $this->guardian->school;
+            $school  = $this->guardian->school()->with(['currentTerm', 'currentSession'])->first();
         }
         if ($this->staff) {
-            $school  = $this->staff->school;
+            $school  = $this->staff->school()->with(['currentTerm', 'currentSession'])->first();
         }
         return [
             'id' => $this->id,

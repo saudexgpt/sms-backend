@@ -90,7 +90,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('student', [DashboardsController::class, 'studentDashboard']);
         Route::get('teacher', [DashboardsController::class, 'teacherDashboard']);
     });
-
     ///////////////////EVENTS/////////////////////////////////
     Route::group(['prefix' => 'events'], function () {
 
@@ -98,6 +97,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('add-event', [EventsController::class, 'addEvent']);
         Route::delete('delete/{event}', [EventsController::class, 'deleteEvent']);
         Route::put('update/{event}', [EventsController::class, 'updateEvent']);
+        Route::get('/upcoming-events', [EventsController::class, 'upcomingEvents']);
     });
 
     Route::group(['prefix' => 'messages'], function () {
@@ -316,6 +316,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('my-subject-students', [SubjectsController::class, 'mySubjectStudents']);
         Route::post('manage-subject-students', [SubjectsController::class, 'manageSubjectStudents']);
         Route::get('subject-teacher-subject', [SubjectsController::class, 'subjectTeachersSubjects']);
+        Route::get('student-subject', [SubjectsController::class, 'studentSubjects']);
+
         Route::get('get-class-students', [ClassesController::class, 'getClassStudents']);
         Route::post('record-ratings', [ClassesController::class, 'recordRatings']);
         // update school logo
@@ -378,5 +380,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         Route::get('guardians', [GuardiansController::class, 'index']);
         Route::get('guardian/show/{guardian}', [GuardiansController::class, 'show']);
+    });
+
+    Route::group(['prefix' => 'guardian'], function () {
+        Route::get('wards', [GuardiansController::class, 'guardianWards']);
     });
 });

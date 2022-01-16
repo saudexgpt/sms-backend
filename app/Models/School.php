@@ -52,6 +52,16 @@ class School extends Model
         return $this->hasMany(Grade::class);
     }
 
+    public function currentTerm()
+    {
+        return $this->belongsTo(Term::class, 'current_term', 'id');
+    }
+
+    public function currentSession()
+    {
+        return $this->belongsTo(SSession::class, 'current_session', 'id');
+    }
+
     public function getFolderKey($id)
     {
         $folder_key = $this->findOrFail($id);

@@ -179,27 +179,20 @@ class GuardiansController extends Controller
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
-        $guardian_obj = new Guardian();
+        $id = $this->getGuardian()->id;
         $student_in_class_obj = new StudentsInClass();
+        $guardian = Guardian::with(['guardianStudents.student.user'])->find($id);
 
-        $guardian = $guardian = $guardian_obj->fetchGuardianDetails($this->getGuardian()->id);
-        $wards = $guardian->wards;
+        $wards = $guardian->guardianStudents;
         foreach ($wards as $student) {
 
             $student_current_class = $student_in_class_obj->fetchStudentInClass($student->id, $sess_id, $term_id, $school_id);
 
 
-            if ($student_current_class) {
-                if ($student_current_class->classTeacher) {
-                    $class = CClass::find($student_current_class->classTeacher->class_id);
-                    $student->c_class = $class;
-                } else {
-                    $student->c_class = '';
-                }
-            }
+            $student->class = ($student_current_class) ? $student_current_class->classTeacher : null;
         }
 
-        return $this->render('core::guardians.wards', compact('guardian', 'wards'));
+        return $this->render(compact('guardian', 'wards'));
     }
     public function wardActivities($id)
     {
