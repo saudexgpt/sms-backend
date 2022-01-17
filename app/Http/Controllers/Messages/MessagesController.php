@@ -48,16 +48,21 @@ class MessagesController extends Controller
 
     public function extraOptions()
     {
-        $options = array(
-            'student' => 'Student', 'parent' => 'Parent', 'staff' => 'School Staff'
-        );
-        $students = Student::where('school_id', $this->getSchool()->id)
+        $options = ['student', 'parent', 'staff'];
+        $students = Student::with('user')->where('school_id', $this->getSchool()->id)
             ->where('user_id', '!=', $this->getUser()->id)->get();
 
-        $recipients = [];
-        foreach ($students as $student) :
-            $recipients[$student->user->id] = $student->user->first_name . ' ' . $student->user->last_name . ' (' . $student->user->username . ')';
-        endforeach;
+        $guardian = Guardian::with('user')->where('school_id', $this->getSchool()->id)
+            ->where('user_id', '!=', $this->getUser()->id)->get();
+        $staff = Staff::with('user')->where('school_id', $this->getSchool()->id)
+            ->where('user_id', '!=', $this->getUser()->id)->get();
+        $recipients['student'] = $students;
+        $recipients['parent'] = $guardian;
+        $recipients['staff'] = $staff;
+        // $recipients = [];
+        // foreach ($students as $student) :
+        //     $recipients[$student->user->id] = $student->user->first_name . ' ' . $student->user->last_name . ' (' . $student->user->username . ')';
+        // endforeach;
 
         return array($options, $recipients);
     }
@@ -83,7 +88,7 @@ class MessagesController extends Controller
         //echo $messages;exit;
         list($options, $recipients) = $this->extraOptions();
 
-        $type = 'Inbox';
+        $type = 'inbox';
         return response()->json(compact('messages', 'options', 'recipients', 'type'), 200);
     }
 
@@ -98,8 +103,8 @@ class MessagesController extends Controller
 
 
         list($options, $recipients) = $this->extraOptions();
-        $type = 'Sent Messages';
-        return $this->render('messages.message', compact('messages', 'options', 'recipients', 'type'));
+        $type = 'sent';
+        return $this->render(compact('messages', 'options', 'recipients', 'type'));
     }
 
     /**
@@ -129,7 +134,7 @@ class MessagesController extends Controller
     public function store(Request $request)
     {
         $message = new Message();
-        $recipients = $request->recipients;
+        $recipients = $request->new_recipients;
         $count = count($recipients);
         $recipient = $recipients[0];
         if ($count > 1) {
@@ -220,10 +225,8 @@ class MessagesController extends Controller
         $message->save();
     }
 
-    public function update(Request $request,  $id)
+    public function update(Request $request, Message $message)
     {
-        $message = Message::find($id);
-
 
 
         $school_id = $this->getSchool()->id;
@@ -242,22 +245,6 @@ class MessagesController extends Controller
                 $original_message->copied_to;
                 $new_reply_message->recipient = $message->sender;*/
             }
-
-            //save it as a new message
-            /*$new_reply_message = new Message();
-
-            if($message->original_message_id != NULL){
-
-            }
-            $new_reply_message->sender = $this->getUser()->id;
-            $new_reply_message->copied_to = $message->copied_to;
-            $new_reply_message->recipient = $message->sender;
-            $new_reply_message->original_message_id = $original_message_id;
-            $new_reply_message->subject = $message->subject;
-            $new_reply_message->message = $request->message;
-            $new_reply_message->save();*/
-
-            return 'true';
         }
 
         if ($request->action == 'forward') {
@@ -276,7 +263,6 @@ class MessagesController extends Controller
             $message->copied_to = $uniq_recipients_str . '~';
 
             $message->save();
-            return 'true';
         }
 
         if ($request->action == 'delete_inbox') {
@@ -294,7 +280,6 @@ class MessagesController extends Controller
             $message->recipient_delete = $uniq_recipients_str . '~';
 
             $message->save();
-            return 'true';
         }
         if ($request->action == 'delete_sent') {
 
@@ -304,18 +289,17 @@ class MessagesController extends Controller
             $message->sender_delete = $this_recipient;
 
             $message->save();
-            return 'true';
         }
-        return 'false';
+        return $this->messageDetails($request, $message);
     }
     /**
      * @param Message $message, $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function messageDetails(Message $message, $id)
+    public function messageDetails(Request $request, Message $message)
     {
         $user_id = $this->getUser()->id;
-        $message_details = Message::find($id);
+        $message_details = $message->with('from', 'to')->find($message->id);
         //record that this user has read the message;
         $read_by = $message_details->read_by;
         $read_by = addSingleElementToString($read_by, $user_id);
@@ -343,28 +327,29 @@ class MessagesController extends Controller
         $message_details->copied_recipients = $copied_recipients;
 
         $replies = $message_details->replies;
-        $message_details->replies = '[]';
+        $message_details->replies = [];
         if ($replies != NULL) {
             $message_details->replies = $this->formatMessageReplies($replies);
         }
-        return $this->render('messages.message_details', compact('message_details', 'options', 'recipients'));
+        return $this->render(compact('message_details', 'options', 'recipients'));
     }
 
     public function formatMessageReplies($replies)
     {
         $replies_array = explode('~', $replies);
-
+        $json_repy = [];
         foreach ($replies_array as $reply) :
             $decode_reply = json_decode($reply);
 
             $replier_detail = User::find($decode_reply->replier);
+            if ($replier_detail) {
 
-            $decode_reply->first_name = $replier_detail->first_name;
-            $decode_reply->last_name = $replier_detail->last_name;
-            $decode_reply->email = $replier_detail->email;
-            $decode_reply->username = $replier_detail->username;
 
-            $json_repy[] = $decode_reply;
+                $decode_reply->from = $replier_detail;
+
+
+                $json_repy[] = $decode_reply;
+            }
         endforeach;
 
 

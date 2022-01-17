@@ -103,9 +103,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::group(['prefix' => 'messages'], function () {
 
         Route::get('/', [MessagesController::class, 'index']);
-        Route::post('add-event', [MessagesController::class, 'addEvent']);
-        Route::delete('delete/{event}', [MessagesController::class, 'deleteEvent']);
-        Route::put('update/{event}', [MessagesController::class, 'updateEvent']);
+        Route::get('/sent', [MessagesController::class, 'sent']);
+        Route::post('send-message', [MessagesController::class, 'store']);
+        Route::delete('delete/{message}', [MessagesController::class, 'delete']);
+        Route::put('update/{message}', [MessagesController::class, 'update']);
+        Route::get('/details/{message}', [MessagesController::class, 'messageDetails']);
     });
 
     Route::group(['prefix' => 'curriculum'], function () {
