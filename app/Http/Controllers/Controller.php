@@ -63,7 +63,7 @@ class Controller extends BaseController
         $this->middleware(function ($request, $next) {
             if (Auth::check()) {
 
-                // $this->resetStudentInClassTable();
+                $this->resetStudentInClassTable();
                 if (($this->getUser()->role == "staff")) {
 
 
