@@ -35,11 +35,17 @@ class UserResource extends JsonResource
         // );
         $rights = array_merge($roles, $user_role);
         $school = '';
+
+        $my_wards_ids = [];
         if ($this->student) {
             $school  = $this->student->school()->with(['currentTerm', 'currentSession'])->first();
         }
         if ($this->guardian) {
+            $wards = $this->guardian->guardianStudents;
             $school  = $this->guardian->school()->with(['currentTerm', 'currentSession'])->first();
+            foreach ($wards as $ward) {
+                $my_wards_ids[] = $ward->student_id;
+            }
         }
         if ($this->staff) {
             $school  = $this->staff->school()->with(['currentTerm', 'currentSession'])->first();
@@ -54,6 +60,7 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'student' => $this->student,
             'guardian' => $this->guardian,
+            'my_wards_ids' => $my_wards_ids,
             'staff' => $this->staff,
             'school' => $school,
             'password_status' => $this->password_status,

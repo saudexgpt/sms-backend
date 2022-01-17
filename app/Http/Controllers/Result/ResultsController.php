@@ -132,9 +132,15 @@ class ResultsController extends Controller
         return response()->json(compact('subject_teachers', 'terms', 'sessions', 'levels'), 200);
     }
 
-    public function studentSelectionOptions()
+    public function studentSelectionOptions(Request $request)
     {
-        $student_id = $this->getStudent()->id;
+        if (isset($request->student_id) && $request->student_id !== '') {
+
+            $student_id = $request->student_id;
+        } else {
+
+            $student_id = $this->getStudent()->id;
+        }
         $school = $this->getSchool();
         $terms = Term::get();
         $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
