@@ -471,7 +471,7 @@ class Result extends Model
                     $result_details[] = $student_result;
                 }
 
-                $result_details_array[] = ['name' => $subject_name, 'color' => $color, 'total' => $total, 'grade_point' => $grade_point];
+                $result_details_array[] = ['name' => $subject_name, 'color' => $color, 'grade' => $total, 'total' => $total, 'grade_point' => $grade_point];
             endforeach;
 
             $student->result_details = $result_details;
