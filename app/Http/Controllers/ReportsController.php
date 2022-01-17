@@ -460,7 +460,15 @@ class ReportsController extends Controller
         $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
-
+        $options = [
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+            'term' => $term_id,
+            'sub_term' => 'full',
+            'grades' => $grades,
+            'result_settings' => $result_settings,
+        ];
 
         $subject_teachers = SubjectTeacher::where('class_teacher_id', $class_teacher_id)->where('teacher_id', '!=', NULL)->get();
 
@@ -512,7 +520,7 @@ class ReportsController extends Controller
 
 
 
-            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($results, $grades, $result_settings);
+            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($results, $grades, $result_settings, $options);
 
             $subject_teacher->subject_result_details = $results;
             $subject_teacher->subject_class_average = sprintf("%01.1f", $subject_class_average);
@@ -1247,7 +1255,15 @@ class ReportsController extends Controller
                 $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
 
                 $result_settings = $this->getResultSettings($curriculum_level_group_id);
-
+                $options = [
+                    'class_teacher_id' => $class_teacher_id,
+                    'school_id' => $school_id,
+                    'sess_id' => $sess_id,
+                    'term' => $term_id,
+                    'sub_term' => 'full',
+                    'grades' => $grades,
+                    'result_settings' => $result_settings,
+                ];
                 $student_results = Result::where(
                     [
                         'class_teacher_id' => $class_teacher_id,
@@ -1276,7 +1292,7 @@ class ReportsController extends Controller
 
                         $student_result->result_action_array = $result->resultStatusAction($result_action->$action_term);
                         //$total_for_avg = $total_for_avg+$student_result->total;
-                        list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings);
+                        list($test, $total, $result_grade, $color, $grade_point) = $result->processResultInfo($student_result, $grades, $result_settings, $options);
 
 
                         //fetch the performance of students for each subject in this class
@@ -1287,7 +1303,7 @@ class ReportsController extends Controller
                             'term_id' => $term_id
                         ])->get();
 
-                        list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($subject_result_details, $grades, $result_settings);
+                        list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($subject_result_details, $grades, $result_settings, $options);
 
                         $student_result->test = $test;
                         $student_result->result_grade = $result_grade;
@@ -1447,7 +1463,15 @@ class ReportsController extends Controller
         }
 
 
-
+        $options = [
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+            'term' => $term_id,
+            'sub_term' => 'full',
+            'grades' => $grades,
+            // 'result_settings' => $result_settings,
+        ];
 
         $subject_teachers = SubjectTeacher::where('class_teacher_id', $class_teacher_id)->get();
 
@@ -1485,7 +1509,7 @@ class ReportsController extends Controller
             $result_settings = $this->getResultSettings($curriculum_level_group_id);
             $result = new Result();
 
-            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($results, $grades, $result_settings);
+            list($subject_class_average, $subject_highest_score, $subject_lowest_score, $male_average, $female_average, $subject_totals) = $result->subjectStudentPerformance($results, $grades, $result_settings, $options);
 
             $subject_teacher->subject_result_details = $results;
             $subject_teacher->subject_class_average = sprintf("%01.1f", $subject_class_average);
