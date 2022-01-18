@@ -118,14 +118,24 @@ class ResultsController extends Controller
     public function setSelectionOptions(Request $request)
     {
         $school = $this->getSchool();
-
+        $user = $this->getUser();
         $teacher = $this->getStaff();
+        $levels = [];
+        if ($user->hasRole('admin')) {
+
+            $levels = $this->getLevels();
+        } else {
+            $class_teachers = ClassTeacher::with('level.classTeachers.c_class', 'level.levelGroup')->where(['school_id' => $school->id, 'teacher_id' => $teacher->id])->get();
+
+            foreach ($class_teachers as $class_teacher) {
+                $levels[] = $class_teacher->level;
+            }
+        }
         $subject_teachers = [];
         if ($teacher) {
             $subject_teachers = $teacher->subjectTeachers()->with(['subject', 'classTeacher.c_class'])
                 ->where(['school_id' => $school->id])->get();
         }
-        $levels = $this->getLevels();
         $terms = Term::get();
         $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
 
