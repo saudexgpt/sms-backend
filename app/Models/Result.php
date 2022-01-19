@@ -403,7 +403,7 @@ class Result extends Model
         $class_subjects = SubjectTeacher::with('subject')->where([
             'class_teacher_id' => $class_teacher_id,
             'school_id' => $school_id
-        ])->orderBy('id')->get();
+        ])->where('teacher_id', '!=', NULL)->orderBy('id')->get();
 
         $result_details_array = [];
         if ($class_subjects->isNotEmpty()) {

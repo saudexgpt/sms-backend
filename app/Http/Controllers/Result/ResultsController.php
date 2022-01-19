@@ -125,10 +125,12 @@ class ResultsController extends Controller
 
             $levels = $this->getLevels();
         } else {
-            $class_teachers = ClassTeacher::with('level.classTeachers.c_class', 'level.levelGroup')->where(['school_id' => $school->id, 'teacher_id' => $teacher->id])->get();
+            $class_teachers = ClassTeacher::with('c_class', 'level.levelGroup')->where(['school_id' => $school->id, 'teacher_id' => $teacher->id])->get();
 
             foreach ($class_teachers as $class_teacher) {
-                $levels[] = $class_teacher->level;
+                $level = $class_teacher->level;
+                $level->classTeachers = $class_teachers;
+                $levels[] = $level;
             }
         }
         $subject_teachers = [];
