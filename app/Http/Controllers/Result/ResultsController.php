@@ -133,6 +133,7 @@ class ResultsController extends Controller
             $subject_teachers = $teacher->subjectTeachers()->with(['subject', 'classTeacher.c_class'])
                 ->where(['school_id' => $school->id])->get();
         }
+
         $terms = Term::get();
         $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
 
