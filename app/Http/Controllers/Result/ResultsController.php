@@ -121,17 +121,12 @@ class ResultsController extends Controller
         $user = $this->getUser();
         $teacher = $this->getStaff();
         $levels = [];
+        $class_teachers = [];
         if ($user->hasRole('admin')) {
 
             $levels = $this->getLevels();
         } else {
             $class_teachers = ClassTeacher::with('c_class', 'level.levelGroup')->where(['school_id' => $school->id, 'teacher_id' => $teacher->id])->get();
-
-            foreach ($class_teachers as $class_teacher) {
-                $level = $class_teacher->level;
-                $level->classTeachers = $class_teachers;
-                $levels[] = $level;
-            }
         }
         $subject_teachers = [];
         if ($teacher) {
@@ -141,7 +136,7 @@ class ResultsController extends Controller
         $terms = Term::get();
         $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
 
-        return response()->json(compact('subject_teachers', 'terms', 'sessions', 'levels'), 200);
+        return response()->json(compact('subject_teachers', 'terms', 'sessions', 'levels', 'class_teachers'), 200);
     }
 
     public function studentSelectionOptions(Request $request)
