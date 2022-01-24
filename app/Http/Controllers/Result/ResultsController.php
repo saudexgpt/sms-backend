@@ -453,6 +453,9 @@ class ResultsController extends Controller
 
 
         $student_result_detail->$label = $score;
+
+
+        $this->saveMidTermScore($student_result_detail, $result_settings);
         //0$result_detail->save();
 
         // $mid_term = $student_result_detail->mid_term / 10; // we convert mid_term from 100 to over 10
@@ -473,7 +476,6 @@ class ResultsController extends Controller
         }
         $student_result_detail->total = $total;
         $student_result_detail->save();
-        $this->saveMidTermScore($student_result_detail, $result_settings);
         // return $student_result_detail;
         $teacher = new Teacher();
         $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
