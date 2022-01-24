@@ -142,7 +142,7 @@ class ResultsController extends Controller
 
     public function studentSelectionOptions(Request $request)
     {
-        if (isset($request->student_id) && $request->student_id !== '') {
+        if (isset($request->student_id) && $request->student_id !== '' && $request->student_id !== 'NaN') {
 
             $student_id = $request->student_id;
         } else {
