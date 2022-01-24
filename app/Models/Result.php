@@ -112,14 +112,16 @@ class Result extends Model
         if ($result_settings->display_exam_score_only_for_full_term === 'no') {
             // we want to make sure that previous inputed results before the major upgrade
             // remain the same so that there would be no descrepancies.
-            // The major upgrade will affect result that will be with sess_id = 6 and term_id = 2 and upwards
+            // The major upgrade will affect result that will be with date from year 2022 and upwards
             $mid_term = 0;
-            if ($result_detail->sess_id <= 6) {
-                if ($result_detail->sess_id == 6 && $result_detail->term_id < 2) {
-                    $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
-                } else {
-                    $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
-                }
+            $result_date = date('Y', strtotime($result_detail->created_at));
+            if ($result_detail->$result_date < '2022') {
+                $mid_term = $result_detail->mid_term / 10;
+                // if ($result_detail->sess_id == 6 && $result_detail->term_id < 2) {
+                //     $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
+                // } else {
+                //     $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
+                // }
             }
             for ($i = 1; $i <= $no_of_ca; $i++) {
                 $assessment = 'ca' . $i;

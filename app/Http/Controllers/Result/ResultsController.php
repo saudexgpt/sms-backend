@@ -489,10 +489,10 @@ class ResultsController extends Controller
                 //check whether any record exits for this subject and student if not create one
                 $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                $mid_term = $result_detail->mid_term / 10;
-                $ca1 = $result_detail->ca1;
-                $ca2 = $result_detail->ca2;
-                $ca3 = $result_detail->ca3;
+                // $mid_term = $result_detail->mid_term / 10;
+                // $ca1 = $result_detail->ca1;
+                // $ca2 = $result_detail->ca2;
+                // $ca3 = $result_detail->ca3;
 
 
 
