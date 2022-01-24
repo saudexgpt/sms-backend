@@ -64,6 +64,7 @@ class Controller extends BaseController
             if (Auth::check()) {
 
                 $this->resetStudentInClassTable();
+                $this->setAdminRole();
                 if (($this->getUser()->role == "staff")) {
 
 
