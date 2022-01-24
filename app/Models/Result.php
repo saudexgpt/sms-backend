@@ -110,11 +110,23 @@ class Result extends Model
         $total_ca_score = 0;
         $no_of_ca = $result_settings->no_of_ca;
         if ($result_settings->display_exam_score_only_for_full_term === 'no') {
+            // we want to make sure that previous inputed results before the major upgrade
+            // remain the same so that there would be no descrepancies.
+            // The major upgrade will affect result that will be with sess_id = 6 and term_id = 2 and upwards
+            $mid_term = 0;
+            if ($result_detail->sess_id <= 6) {
+                if ($result_detail->sess_id == 6 && $result_detail->term_id < 2) {
+                    $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
+                } else {
+                    $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
+                }
+            }
             for ($i = 1; $i <= $no_of_ca; $i++) {
                 $assessment = 'ca' . $i;
                 $score = $result_detail->$assessment;
                 $total_ca_score += ($score) ? $score : 0;
             }
+            $total_ca_score += $mid_term;
         }
         return $total_ca_score;
     }
@@ -442,14 +454,14 @@ class Result extends Model
                     // if (($sub_term == 'half' && in_array($status_half, $viewable)) || ($sub_term == 'full' && in_array($status_full, $viewable))) {
 
 
-                    $total = $student_result->total;
-
-
                     if ($sub_term == 'half') {
-                        //we want to calculate the total ca for half term and convert to its equivalent 100%
-                        // $total_ca = $student_result->ca1 + $student_result->ca2;
-                        // $total = scoreInPercentage($total_ca, 30);
                         $total = $student_result->mid_term;
+                    } else {
+
+
+                        $test = $this->addCaScores($student_result, $result_settings);
+                        $exam =  $student_result->exam;
+                        $total = $this->addScores($test, $exam);
                     }
 
 
