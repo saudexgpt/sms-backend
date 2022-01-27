@@ -369,6 +369,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::put('students/update/{student_in_class}', [StudentsController::class, 'update']);
         Route::get('students/show/{student}', [StudentsController::class, 'show']);
         Route::post('students/upload/bulk', [StudentsController::class, 'uploadBulkStudents']);
+        Route::put('toggle-studentship-status/{student}', [StudentsController::class, 'toggleStudentshipStatus']);
 
         Route::get('admin-reset/password', [UsersController::class, 'adminResetUserPassword']);
         Route::put('reset/password/{user}', [UsersController::class, 'resetPassword']);

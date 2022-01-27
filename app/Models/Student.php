@@ -20,6 +20,17 @@ class Student extends Model
         'is_testimonial_submitted',
         'is_active'
     ];
+    // protected static function booted()
+    // {
+    //     static::addGlobalScope('active_suspended', function (Builder $builder) {
+    //         $builder->whereIn('studentship_status', ['active', 'suspended']);
+    //     });
+    // }
+    // public function newQuery($excludeDeleted = true)
+    // {
+    //     return parent::newQuery($excludeDeleted)
+    //         ->whereIn('studentship_status', ['active', 'suspended']);
+    // }
     public function scopeActiveStudentOnly($query)
     {
         return $query->whereStudentshipStatus('active');

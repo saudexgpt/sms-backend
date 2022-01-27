@@ -2,11 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class StudentsInClass extends Model
 {
-    //
+    // protected static function booted()
+    // {
+    //     static::addGlobalScope('active_suspended', function (Builder $builder) {
+    //         $builder->with(['student' => function ($q) {
+    //             $q->whereIn('studentship_status', ['active', 'suspended']);
+    //         }]);
+    //     });
+    // }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

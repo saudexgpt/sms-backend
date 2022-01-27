@@ -278,7 +278,9 @@ class SubjectsController extends Controller
         $subject_teacher_id = $request->subject_teacher_id;
         $subject_teacher = SubjectTeacher::with(['classTeacher.c_class', 'staff', 'subject'])->find($subject_teacher_id);
         $class_teacher_id = $subject_teacher->class_teacher_id;
-        $students_in_class = StudentsInClass::with('student.user')->where([
+        $students_in_class = StudentsInClass::with(['student' => function ($query) {
+            $query->ActiveAndSuspended();
+        }, 'student.user'])->where([
             'school_id' => $school_id,
             'sess_id' => $sess_id,
             'class_teacher_id' => $class_teacher_id,

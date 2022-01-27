@@ -150,9 +150,9 @@ class StudentsController extends Controller
         $request->school_id = $this->getSchool()->id;
 
 
-        if ($this->isDuplicateStudent($request->first_name, $request->last_name)) {
-            return response()->json(['message' => "$request->last_name $request->first_name exists already"], 409);
-        }
+        // if ($this->isDuplicateStudent($request->first_name, $request->last_name)) {
+        //     return response()->json(['message' => "$request->last_name $request->first_name exists already"], 409);
+        // }
 
         $request->folder_key = $school->folder_key;
 
@@ -403,7 +403,8 @@ class StudentsController extends Controller
 
     public function studentTeachers(Student $stud, $id = NULL)
     {
-        $school_id = $this->getSchool()->id;
+        $school = $this->getSchool();
+        $school_id = $school->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $student_in_class_obj = new StudentsInClass();
@@ -428,7 +429,7 @@ class StudentsController extends Controller
         $class_teacher_id = $student_in_class->class_teacher_id;
 
         //Get the student details for this student_id
-        list($student, $parent, $class, $subjects) = $stud->getStudentDetails($stud_id, $class_teacher_id);
+        list($student, $parent, $class, $subjects) = $stud->getStudentDetails($school, $stud_id, $class_teacher_id);
 
 
 
@@ -442,7 +443,8 @@ class StudentsController extends Controller
     //method to render student subjects
     public function studentSubjects(Student $stud)
     {
-        $school_id = $this->getSchool()->id;
+        $school = $this->getSchool();
+        $school_id = $school->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $student_in_class_obj = new StudentsInClass();
@@ -464,7 +466,7 @@ class StudentsController extends Controller
             return $this->render('errors.404', compact('message'));
         }
         $class_teacher_id = $student_in_class->class_teacher_id;
-        list($student, $parent, $class, $subjects) = $stud->getStudentDetails($stud_id, $class_teacher_id);
+        list($student, $parent, $class, $subjects) = $stud->getStudentDetails($school, $stud_id, $class_teacher_id);
         /*foreach ($subjects as $subject):
 
             $student_ids = $subject->student_ids;
@@ -566,7 +568,8 @@ class StudentsController extends Controller
 
         $stud = $this->getStudent();
         $id = $this->getStudent()->id;
-        $school_id = $this->getSchool()->id;
+        $school = $this->getSchool();
+        $school_id = $school->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $student_in_class_obj = new StudentsInClass();
@@ -577,7 +580,7 @@ class StudentsController extends Controller
         if ($student_in_class) {
 
             //Get the student details for this student_id
-            list($student, $parent, $class, $subjects) = $stud->getStudentDetails($id, $student_in_class->class_teacher_id);
+            list($student, $parent, $class, $subjects) = $stud->getStudentDetails($school, $id, $student_in_class->class_teacher_id);
             //return $class->level;
 
             //return $parent->relationship;
@@ -605,13 +608,11 @@ class StudentsController extends Controller
     //     return 'success';
     // }
 
-    public function toggleStudentshipStatus(Request $request)
+    public function toggleStudentshipStatus(Request $request, Student $student)
     {
-        $student_id = $request->student_id;
         $status = $request->status;
-        $student = Student::find($student_id);
         $student->studentship_status = $status;
         $student->save();
-        return 'success';
+        return $this->show($student);
     }
 }

@@ -57,7 +57,9 @@ class Teacher extends Model
     public function teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id)
     {
 
-        $students_in_class = StudentsInClass::with('student.user')->where([
+        $students_in_class = StudentsInClass::with(['student' => function ($query) {
+            $query->ActiveAndSuspended();
+        }, 'student.user'])->where([
             'class_teacher_id' => $class_teacher_id,
             'sess_id' => $sess_id,
             //'term_id'=>$term_id,
@@ -94,7 +96,9 @@ class Teacher extends Model
     {
         $student_offering_subjects_obj =  new StudentsOfferingSubject();
         // return $this->teacherClassStudents($class_teacher_id, $sess_id, $term_id, $school_id);
-        $students_offering_subjects = StudentsOfferingSubject::with('student.user')->where([
+        $students_offering_subjects = StudentsOfferingSubject::with(['student' => function ($query) {
+            $query->ActiveAndSuspended();
+        }, 'student.user'])->where([
             'subject_teacher_id' => $subject_teacher->id,
             'sess_id' => $sess_id,
             //'term_id'=>$term_id,

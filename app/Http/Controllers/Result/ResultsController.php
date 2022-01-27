@@ -305,34 +305,38 @@ class ResultsController extends Controller
         $edit_midterm = $edit_exam = true;
         if (!empty($class_students)) {
             foreach ($class_students as $student) :
-                $student_id = $student->id;
-
-                $reg_no = $student->registration_no;
-                //check whether any record exits for this subject and student if not create one
-                $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
-
-                $result_action_array = $result->resultStatusAction($result_detail);
-
-                list($edit_midterm, $edit_exam) = $result->getAllResultActions($result_detail);
-
-                // $mid_term = $result_detail->mid_term / 10;
-                // $ca1 = $result_detail->ca1;
-                // $ca2 = $result_detail->ca2;
-                // $ca3 = $result_detail->ca3;
-                // $ca4 = $result_detail->ca4;
-                // $ca5 = $result_detail->ca5;
+                if ($student->studentship_status !== 'left') {
 
 
+                    $student_id = $student->id;
 
-                $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+                    $reg_no = $student->registration_no;
+                    //check whether any record exits for this subject and student if not create one
+                    $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                $student->result_detail = $result_detail;
+                    $result_action_array = $result->resultStatusAction($result_detail);
 
-                list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
+                    list($edit_midterm, $edit_exam) = $result->getAllResultActions($result_detail);
 
-                $empty_half_record += $student_half_record;
-                $empty_full_record += $student_full_record;
-                $students[] = $student;
+                    // $mid_term = $result_detail->mid_term / 10;
+                    // $ca1 = $result_detail->ca1;
+                    // $ca2 = $result_detail->ca2;
+                    // $ca3 = $result_detail->ca3;
+                    // $ca4 = $result_detail->ca4;
+                    // $ca5 = $result_detail->ca5;
+
+
+
+                    $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+
+                    $student->result_detail = $result_detail;
+
+                    list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
+
+                    $empty_half_record += $student_half_record;
+                    $empty_full_record += $student_full_record;
+                    $students[] = $student;
+                }
             endforeach;
         }
         $subject_teacher->empty_half_record = $empty_half_record;
@@ -485,29 +489,31 @@ class ResultsController extends Controller
         $empty_full_record = 0;
         if (!empty($class_students)) {
             foreach ($class_students as $student) :
-                $student_id = $student->id;
+                if ($student->studentship_status !== 'left') {
+                    $student_id = $student->id;
 
-                $reg_no = $student->registration_no;
-                //check whether any record exits for this subject and student if not create one
-                $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
+                    $reg_no = $student->registration_no;
+                    //check whether any record exits for this subject and student if not create one
+                    $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                // $mid_term = $result_detail->mid_term / 10;
-                // $ca1 = $result_detail->ca1;
-                // $ca2 = $result_detail->ca2;
-                // $ca3 = $result_detail->ca3;
+                    // $mid_term = $result_detail->mid_term / 10;
+                    // $ca1 = $result_detail->ca1;
+                    // $ca2 = $result_detail->ca2;
+                    // $ca3 = $result_detail->ca3;
 
 
 
-                $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+                    $result_detail->test = $result->addCaScores($result_detail, $result_settings);
 
-                $student->result_detail = $result_detail;
+                    $student->result_detail = $result_detail;
 
-                list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
+                    list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
 
-                $empty_half_record += $student_half_record;
-                $empty_full_record += $student_full_record;
+                    $empty_half_record += $student_half_record;
+                    $empty_full_record += $student_full_record;
 
-                $students[] = $student;
+                    $students[] = $student;
+                }
             endforeach;
         }
 
@@ -1060,25 +1066,27 @@ class ResultsController extends Controller
                 $students = [];
                 if (!empty($class_students)) {
                     foreach ($class_students as $student) :
-                        $student_id = $student->id;
+                        if ($student->studentship_status !== 'left') {
+                            $student_id = $student->id;
 
-                        $reg_no = $student->registration_no;
-                        //check whether any record exits for this subject and student if not create one
-                        $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
+                            $reg_no = $student->registration_no;
+                            //check whether any record exits for this subject and student if not create one
+                            $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                        // $mid_term = $result_detail->mid_term / 10;
-                        // $ca1 = $result_detail->ca1;
-                        // $ca2 = $result_detail->ca2;
-                        // $ca3 = $result_detail->ca3;
+                            // $mid_term = $result_detail->mid_term / 10;
+                            // $ca1 = $result_detail->ca1;
+                            // $ca2 = $result_detail->ca2;
+                            // $ca3 = $result_detail->ca3;
 
 
 
-                        $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+                            $result_detail->test = $result->addCaScores($result_detail, $result_settings);
 
-                        $student->result_detail = $result_detail;
+                            $student->result_detail = $result_detail;
 
-                        // list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail);
-                        $students[] = $student;
+                            // list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail);
+                            $students[] = $student;
+                        }
                     endforeach;
                 }
                 $subject_teacher->students = $students;
