@@ -34,13 +34,18 @@ class StudentsController extends Controller
     }
     public function allStudentsTable(Request $request)
     {
+        $school = $this->getSchool();
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
         $levels = $this->getLevels();
+        $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
         $level_id = $levels[0]->id;
         if (isset($request->level_id) && $request->level_id != '') {
             $level_id = $request->level_id;
+        }
+        if (isset($request->sess_id) && $request->sess_id != '') {
+            $sess_id = $request->sess_id;
         }
         // $students_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user', 'classTeachers.c_class'])->where(['sess_id' => $sess_id, 'level_id'=> $level_id, 'school_id' => $school_id])->get();
         $level = Level::with(['classTeachers.c_class', 'studentsInClass' => function ($query) use ($school_id, $sess_id) {
@@ -50,7 +55,7 @@ class StudentsController extends Controller
         $students_in_class = $level->studentsInClass;
 
 
-        return  $this->render(compact('students_in_class', 'levels', 'level'));
+        return  $this->render(compact('students_in_class', 'levels', 'level', 'sessions', 'sess_id'));
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View

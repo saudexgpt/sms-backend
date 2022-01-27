@@ -379,7 +379,8 @@ class Controller extends BaseController
     }
     public function fetchSessionAndTerm()
     {
-        $sessions = SSession::orderBy('id', 'DESC')->get();
+        $school = $this->getSchool();
+        $sessions = $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get(); // SSession::orderBy('id', 'DESC')->get();
         $terms = Term::orderBy('id')->get();
         return $this->render(compact('sessions', 'terms'));
     }
