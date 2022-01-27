@@ -69,16 +69,16 @@ class Teacher extends Model
         $students = [];
 
         foreach ($students_in_class as $student_in_class) :
+            if ($student_in_class->student !== null) {
+                $student = $student_in_class->student;
+                $student->skill = $student->skills()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
 
-            $student = $student_in_class->student;
-            $student->skill = $student->skills()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
-
-            $student->behavior = $student->behaviors()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
-            $students[] = $student;
-        // if ($student->studentship_status == 'active') {
-        //     $students[] = $student;
-        // }
-
+                $student->behavior = $student->behaviors()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
+                $students[] = $student;
+                // if ($student->studentship_status == 'active') {
+                //     $students[] = $student;
+                // }
+            }
 
         endforeach;
 
@@ -108,21 +108,24 @@ class Teacher extends Model
         if ($students_offering_subjects->isEmpty()) {
             $students =  $this->teacherClassStudents($subject_teacher->class_teacher_id, $sess_id, $term_id, $school_id);
             foreach ($students as $student) {
-
-                $student_offering_subjects_obj->addStudentToSubjectClass($student->id, $subject_teacher->id, $sess_id, $term_id, $school_id);
+                if ($student !== null) {
+                    $student_offering_subjects_obj->addStudentToSubjectClass($student->id, $subject_teacher->id, $sess_id, $term_id, $school_id);
+                }
             }
             return $students;
         } else {
 
             $students = [];
             foreach ($students_offering_subjects as $student_in_class) :
+                if ($student_in_class->student !== null) {
+                    # code...
 
-                $student = $student_in_class->student;
-                $student->skill = $student->skills()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
+                    $student = $student_in_class->student;
+                    $student->skill = $student->skills()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
 
-                $student->behavior = $student->behaviors()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
-                $students[] = $student;
-
+                    $student->behavior = $student->behaviors()->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->first();
+                    $students[] = $student;
+                }
             endforeach;
 
 
