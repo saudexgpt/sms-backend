@@ -59,7 +59,7 @@ class ClassroomsController extends Controller
         $school_id = $this->getSchool()->id;
         $date = todayDate();
         $today = getDateFormatWords($date);
-        $dateS = Carbon::now()->startOfMonth()->subMonth(3); // within a term
+        $dateS = Carbon::now()->startOfMonth(); // ->subMonth(3); // within a term
         $dateE = Carbon::now()->endOfMonth();
 
 
