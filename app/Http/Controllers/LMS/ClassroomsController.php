@@ -55,15 +55,18 @@ class ClassroomsController extends Controller
 
     public function createdOnlineClassrooms(Request $request)
     {
+        set_time_limit(0);
         $school_id = $this->getSchool()->id;
         $date = todayDate();
         $today = getDateFormatWords($date);
-        $dateS = Carbon::now()->startOfMonth()->subMonth(4); // within a term
-        $dateE = Carbon::now()->startOfMonth();
+        $dateS = Carbon::now()->startOfMonth()->subMonth(3); // within a term
+        $dateE = Carbon::now()->endOfMonth();
 
-        $daily_classrooms = DailyClassroom::with(['materials', 'videos.youtubeVideo', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'date' => $today])->get();
+
         if (isset($request->option) && $request->option == 'yes') {
             $daily_classrooms = DailyClassroom::with(['materials', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id])->whereBetween('created_at', [$dateS, $dateE])->get();
+        } else {
+            $daily_classrooms = DailyClassroom::with(['materials', 'videos.youtubeVideo', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'date' => $today])->get();
         }
 
 
