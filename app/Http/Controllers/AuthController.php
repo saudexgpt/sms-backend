@@ -159,7 +159,8 @@ class AuthController extends Controller
         // $this->guard()->logout();
 
         // $request->session()->invalidate();
-        $request->user()->tokens()->delete();
+        // $request->user()->tokens()->delete();
+        $request->user()->currentAccessToken()->delete();
         if (isset($request->school_id)) {
             $school_id = $request->school_id;
             $admin_role_id = 1;
