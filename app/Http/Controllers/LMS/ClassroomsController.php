@@ -59,14 +59,14 @@ class ClassroomsController extends Controller
         $school_id = $this->getSchool()->id;
         $date = todayDate();
         $today = getDateFormatWords($date);
-        $dateS = Carbon::now()->startOfMonth(); // ->subMonth(3); // within a term
-        $dateE = Carbon::now()->endOfMonth();
+        $dateS = getDateFormatWords(Carbon::now()->startOfMonth()); // ->subMonth(3); // within a term
+        $dateE = getDateFormatWords(Carbon::now()->endOfMonth());
 
 
         if (isset($request->option) && $request->option == 'yes') {
-            $daily_classrooms = DailyClassroom::with(['materials', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id])->whereBetween('created_at', [$dateS, $dateE])->get();
+            $daily_classrooms = DailyClassroom::with(['materials', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id])->whereBetween('date', [$dateS, $dateE])->orderBy('date', 'DESC')->get();
         } else {
-            $daily_classrooms = DailyClassroom::with(['materials', 'videos.youtubeVideo', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'date' => $today])->get();
+            $daily_classrooms = DailyClassroom::with(['materials', 'videos.youtubeVideo', 'posts', 'subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'date' => $today])->orderBy('date', 'DESC')->get();
         }
 
 
