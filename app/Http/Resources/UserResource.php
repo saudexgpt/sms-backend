@@ -76,6 +76,7 @@ class UserResource extends JsonResource
             ),
             'avatar' => '/' . $this->photo, //'https://i.pravatar.cc',
             'can_edit' => $can_edit,
+            'whatsapp_no' => '2347044449412'
         ];
     }
 }
