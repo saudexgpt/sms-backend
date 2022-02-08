@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Messages;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassTeacher;
 use App\Models\Message;
 use App\Models\Student;
 use App\Models\Staff;
 use App\Models\Guardian;
+use App\Models\GuardianStudent;
+use App\Models\StudentsInClass;
+use App\Models\SubjectTeacher;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -48,23 +53,158 @@ class MessagesController extends Controller
 
     public function extraOptions()
     {
-        $options = ['student', 'parent', 'staff'];
-        $students = Student::with('user')->where('school_id', $this->getSchool()->id)
-            ->where('user_id', '!=', $this->getUser()->id)->get();
+        $user = $this->getUser();
+        $user_id = $user->id;
+        $school_id = $this->getSchool()->id;
 
-        $guardian = Guardian::with('user')->where('school_id', $this->getSchool()->id)
-            ->where('user_id', '!=', $this->getUser()->id)->get();
-        $staff = Staff::with('user')->where('school_id', $this->getSchool()->id)
-            ->where('user_id', '!=', $this->getUser()->id)->get();
-        $recipients['student'] = $students;
-        $recipients['parent'] = $guardian;
-        $recipients['staff'] = $staff;
-        // $recipients = [];
-        // foreach ($students as $student) :
-        //     $recipients[$student->user->id] = $student->user->first_name . ' ' . $student->user->last_name . ' (' . $student->user->username . ')';
-        // endforeach;
+        if ($user->hasRole('admin')) {
+            // admin
+            $options = ['student', 'parent', 'staff'];
+            $students = Student::with('user')->where('school_id', $school_id)
+                ->where('user_id', '!=', $user_id)->get();
+
+            $guardian = Guardian::with('user')->where('school_id', $school_id)
+                ->where('user_id', '!=', $user_id)->get();
+            $staff = Staff::with('user')->where('school_id', $school_id)
+                ->where('user_id', '!=', $user_id)->get();
+
+            $recipients['student'] = $students;
+            $recipients['parent'] = $guardian;
+            $recipients['staff'] = $staff;
+        } else if ($user->role === 'staff') {
+
+            $options = ['student', 'parent', 'staff'];
+            $students = $this->getTeacherStudents();
+
+            $guardian = [];
+            $guardian_id_array = [];
+            foreach ($students as $student) {
+                $gurdian_student = GuardianStudent::with('guardian.user')->where('student_id', $student->id)->first();
+                if (!in_array($gurdian_student->guardian->id, $guardian_id_array)) {
+
+                    $guardian[] = $gurdian_student->guardian;
+
+                    $guardian_id_array[] = $gurdian_student->guardian->id;
+                }
+            }
+            $staff = Staff::with('user')->where('school_id', $school_id)
+                ->where('user_id', '!=', $user_id)->get();
+
+            $recipients['student'] = $students;
+            $recipients['parent'] = $guardian;
+            $recipients['staff'] = $staff;
+        } else if ($user->role === 'parent') {
+
+            $options = ['staff'];
+            $staff = $this->getWardTeachers();
+            $recipients['staff'] = $staff;
+        } else {
+            // admin
+            $options = ['staff'];
+            $student_id = $this->getStudent()->id;
+            $staff = [];
+            $staff_id_array = [];
+
+            $student_in_class_obj = new StudentsInClass();
+
+            $student_in_class = $student_in_class_obj->fetchStudentInClass($student_id, $this->getSession()->id, $this->getTerm()->id, $school_id);
+
+            if ($student_in_class->classTeacher) {
+                if ($student_in_class->classTeacher->teacher_id !== null) {
+                    if (!in_array($student_in_class->classTeacher->teacher_id, $staff_id_array)) {
+
+                        $staff[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
+                        $staff_id_array[] = $student_in_class->classTeacher->teacher_id;
+                    }
+                }
+
+                $stubject_teachers = SubjectTeacher::where('class_teacher_id', $student_in_class->class_teacher_id)->where('teacher_id', '!=', null)->where('teacher_id', '!=', $student_in_class->classTeacher->teacher_id)->get();
+                foreach ($stubject_teachers as $stubject_teacher) {
+
+                    if (!in_array($stubject_teacher->teacher_id, $staff_id_array)) {
+
+                        $staff[] = Staff::with('user')->find($stubject_teacher->teacher_id);
+                    }
+                }
+            }
+            $staff[] = Staff::with('user')->where('school_id', $school_id)->first();
+
+            $recipients['staff'] = $staff;
+        }
 
         return array($options, $recipients);
+    }
+    private function getTeacherStudents()
+    {
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+        $teacher = $this->getStaff();
+        $teacher_obj = new Teacher();
+
+        $my_students = [];
+        $my_students_id_array = [];
+        $subject_teachers = SubjectTeacher::where(['teacher_id' => $teacher->id, 'school_id' => $school_id])->get();
+        if ($subject_teachers->isNotEmpty()) {
+            foreach ($subject_teachers as $subject_teacher) {
+                $subject_students =  $teacher_obj->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
+
+                foreach ($subject_students as $subject_student) {
+                    if (!in_array($subject_student->id, $my_students_id_array)) {
+
+                        $my_students[] = $subject_student;
+                        $my_students_id_array[] = $subject_student->id;
+                    }
+                }
+            }
+        }
+
+
+        $class_teachers = ClassTeacher::where(['teacher_id' => $teacher->id, 'school_id' => $school_id])->get();
+        if ($class_teachers->isNotEmpty()) {
+            foreach ($class_teachers as $class_teacher) {
+                $class_students =  $teacher_obj->teacherClassStudents($class_teacher->id, $sess_id, $term_id, $school_id);
+                foreach ($class_students as $class_student) {
+                    if (!in_array($class_student->id, $my_students_id_array)) {
+
+                        $my_students[] = $class_student;
+                        $my_students_id_array[] = $class_student->id;
+                    }
+                }
+            }
+        }
+
+        return $my_students;
+    }
+
+    private function getWardTeachers()
+    {
+        $user = $this->getUser();
+        $user_id = $user->id;
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+
+        $recipients = [];
+        $guardian = Guardian::where(['school_id' => $school_id, 'user_id' => $user_id])->first();
+        $guardian_wards = $guardian->guardianWards;
+        $teacher_id_array = [];
+        foreach ($guardian_wards as $guardian_ward) {
+            $student_in_class_obj = new StudentsInClass();
+            $student_id = $guardian_ward->student_id;
+
+            $student_in_class = $student_in_class_obj->fetchStudentInClass($student_id, $sess_id, $term_id, $school_id);
+
+            if ($student_in_class->classTeacher) {
+                if (!in_array($student_in_class->classTeacher->teacher_id, $teacher_id_array)) {
+
+                    $recipients[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
+                    $teacher_id_array[] = $student_in_class->classTeacher->teacher_id;
+                }
+            }
+        }
+        $recipients[] = Staff::with('user')->where('school_id',  $school_id)->first(); // school admin
+        return $recipients;
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -108,26 +248,6 @@ class MessagesController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function create()
-    {
-        $options = array(
-            'student' => 'Student', 'parent' => 'Parent', 'staff' => 'School Staff'
-        );
-        $students = Student::where('school_id', $this->getSchool()->id)
-            ->where('user_id', '!=', $this->getUser()->id)->get();
-
-        $recipients = [];
-        foreach ($students as $student) :
-            $recipients[$student->user->id] = $student->user->username . ' (' . $student->user->first_name . ' ' . $student->user->last_name . ')';
-        endforeach;
-
-        //print_r($recipient);exit;
-        return (string) $this->render('messages.create', compact('options', 'recipients'));
-    }
-
-    /**
      * @param Message $message
      * @return \Illuminate\Http\JsonResponse
      */
@@ -157,74 +277,6 @@ class MessagesController extends Controller
         }
         return (string) 'failed';
     }
-
-
-    /**
-     * Method to get recipients depending on the category option selected
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getRecipients(Request $request)
-    {
-        //$request->option = "staff";
-        $school_id = $this->getSchool()->id;
-        $user_id = $this->getUser()->id;
-        switch ($request->option) {
-            case 'student':
-                $recipients = Student::where('school_id', $school_id)
-                    ->where('user_id', '!=', $user_id)->get();
-                break;
-            case 'parent':
-                if ($this->getUser()->role == "student") {
-                    $recipients = Guardian::where('ward_ids', 'LIKE', '%~' . $this->getStudent()->id . '~%')
-                        ->where('user_id', '!=', $user_id)->get();
-                    break;
-                }
-                $recipients = Guardian::where('school_id', $school_id)
-                    ->where('guardians.user_id', '!=', $user_id)->get();
-                break;
-            case 'staff':
-                $recipients = Staff::where('school_id', $school_id)
-                    ->where('user_id', '!=', $user_id)->get();
-                break;
-
-            default:
-                $recipients = Student::where('school_id', $school_id)
-                    ->where('user_id', '!=', $user_id)->get();
-                break;
-        }
-
-        foreach ($recipients as $recipient) :
-
-            $username = ($recipient->user->email != null) ? $recipient->user->email : $recipient->user->username;
-            $selected_recipients[] = array('id' => $recipient->user->id, 'name' => $recipient->user->first_name . ' ' . $recipient->user->last_name . ' (' . $username . ')');
-        endforeach;
-
-        return json_encode($selected_recipients);
-    }
-
-    private function processRepliedMessages($request, $message)
-    {
-        $user_id = $this->getUser()->id;
-        if ($message->replies == NULL || $message->replies == '') {
-            $old_replies = '';
-        } else {
-            $old_replies = '~' . $message->replies;
-        }
-        $replier = $user_id;
-        $reply_message = $request->message;
-
-        $reply_details = json_encode(
-            array(
-                'replier' => $replier,
-                'message' => $reply_message
-            )
-        ) . $old_replies;
-
-        $message->replies = $reply_details;
-        $message->save();
-    }
-
     public function update(Request $request, Message $message)
     {
 
@@ -334,27 +386,27 @@ class MessagesController extends Controller
         return $this->render(compact('message_details', 'options', 'recipients'));
     }
 
-    public function formatMessageReplies($replies)
-    {
-        $replies_array = explode('~', $replies);
-        $json_repy = [];
-        foreach ($replies_array as $reply) :
-            $decode_reply = json_decode($reply);
+    // public function formatMessageReplies($replies)
+    // {
+    //     $replies_array = explode('~', $replies);
+    //     $json_repy = [];
+    //     foreach ($replies_array as $reply) :
+    //         $decode_reply = json_decode($reply);
 
-            $replier_detail = User::find($decode_reply->replier);
-            if ($replier_detail) {
-
-
-                $decode_reply->from = $replier_detail;
+    //         $replier_detail = User::find($decode_reply->replier);
+    //         if ($replier_detail) {
 
 
-                $json_repy[] = $decode_reply;
-            }
-        endforeach;
+    //             $decode_reply->from = $replier_detail;
 
 
-        return $json_repy;
-    }
+    //             $json_repy[] = $decode_reply;
+    //         }
+    //     endforeach;
+
+
+    //     return $json_repy;
+    // }
     /*public function forwardForm($id)
     {
         list($options, $recipients) = $this->extraOptions();

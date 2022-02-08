@@ -1052,5 +1052,5 @@ function subdomainPublicPath($folder = null)
 
 function portalPulicPath($folder = null)
 {
-    return "/home/schoolpoint/portal.school-point.com/storage/" . $folder;
+    return "/home/schoolpoint/public_html/api/storage/" . $folder;
 }
