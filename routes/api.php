@@ -14,6 +14,7 @@ use App\Http\Controllers\LMS\QuizController;
 use App\Http\Controllers\Materials\CurriculaController;
 use App\Http\Controllers\Materials\MaterialsController;
 use App\Http\Controllers\Messages\MessagesController;
+use App\Http\Controllers\PackagesController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Result\GradesController;
 use App\Http\Controllers\Result\ResultDisplaySettingsController;
@@ -263,6 +264,21 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('created-online-classrooms', [ClassroomsController::class, 'createdOnlineClassrooms']);
     });
 
+    Route::group(['prefix' => 'packages'], function () {
+
+
+        Route::get('/', [PackagesController::class, 'index']);
+        Route::post('store', [PackagesController::class, 'store']);
+        Route::put('update/{package}', [PackagesController::class, 'update']);
+
+
+        Route::get('fetch-modules', [PackagesController::class, 'fetchModules']);
+        Route::post('add-module', [PackagesController::class, 'addModule']);
+        Route::delete('remove-module/{package_module}', [PackagesController::class, 'removeModule']);
+
+        Route::post('assign-school-package', [PackagesController::class, 'assignSchoolPackage']);
+    });
+
     Route::group(['prefix' => 'report'], function () {
 
         Route::get('display-chart', [ReportsController::class, 'displayReportChart']);
@@ -302,6 +318,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         Route::get('/fetch-commumity', [SchoolsController::class, 'fetchSchoolCommunity']);
         Route::get('/', [SchoolsController::class, 'index']);
+        Route::get('/active', [SchoolsController::class, 'activeSchools']);
+
         Route::get('potential', [SchoolsController::class, 'potentialSchools']);
         Route::get('show/{school}', [SchoolsController::class, 'show']);
         Route::post('toggle-school-non-payment-suspension', [SchoolsController::class, 'toggleSchoolNonPaymentSuspension']);
@@ -398,6 +416,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         Route::get('admin-reset/password', [UsersController::class, 'adminResetUserPassword']);
         Route::put('reset/password/{user}', [UsersController::class, 'resetPassword']);
+        Route::post('upload-photo', [UsersController::class, 'updatePhoto']);
 
         // Route::resource('staff', StaffController::class);
         Route::get('staff', [StaffController::class, 'index']);

@@ -151,29 +151,22 @@ class UsersController extends Controller
     public function updatePhoto(Request $request)
     {
         //
-        $request->file('photo');
         $school = $this->getSchool();
-        $user_id = $request->user_id;
-        $user = User::find($user_id);
+        $user = User::find($request->user_id);
         if ($request->file('photo') != null && $request->file('photo')->isValid()) {
-            $name = str_replace('@', '_', $user->username);
-            $name = str_replace('.', '_', $name) . "." . $request->file('photo')->guessClientExtension();
-            $folder_key = $school->folder_key;
-            $photo_name = $user->uploadFile($request, $name, $folder_key);
-            $user->photo = $photo_name;
-            if ($user->save()) {
-                //return "success";
-                if ($request->ajax()) {
+            $mime = $request->file('photo')->getClientMimeType();
 
-                    return "true";
-                }
-                Flash::success('Photo Updated Successfully');
-                return redirect()->route('dashboard');
+            if ($mime == 'image/png' || $mime == 'image/jpeg' || $mime == 'image/jpg' || $mime == 'image/gif') {
+                $name = str_replace('@', '_', $user->username);
+                $name = str_replace('/', '_', $user->username);
+                $name = str_replace('.', '_', $name) . "." . $request->file('photo')->guessClientExtension();
+                $folder_key = $school->folder_key . '/profile_img';;
+                $photo_name = $user->uploadFile($request, $name, $folder_key);
+                $user->photo = $photo_name;
+                $user->save();
             }
         }
-
-        Flash::error('An error occured. Please try again.');
-        return redirect()->route('dashboard');
+        return $user->photo;
     }
 
     /**

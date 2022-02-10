@@ -29,6 +29,10 @@ class School extends Model
         'is_active'
     ];
 
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
     public function students()
     {
         return $this->hasMany(Student::class);

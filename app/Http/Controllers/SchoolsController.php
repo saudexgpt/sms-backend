@@ -28,7 +28,14 @@ class SchoolsController extends Controller
      */
     public function index()
     {
-        $schools = School::all();
+        $schools = School::with('package.packageModules.module')->get();
+        // $group_of_schools = GroupOfSchool::orderBy('name')->get();
+        return response()->json(compact('schools'));
+    }
+
+    public function activeSchools()
+    {
+        $schools = School::where('is_active', '1')->get();
         // $group_of_schools = GroupOfSchool::orderBy('name')->get();
         return response()->json(compact('schools'));
     }
@@ -211,7 +218,7 @@ class SchoolsController extends Controller
 
         $totalStaff = Staff::where(['school_id' => $school_id])->count();
         $totalGuardian = Guardian::where('school_id', $school_id)->count();
-        $school = $school->with('students.user', 'students.studentGuardian.guardian.user', 'staff.user')->find($school->id);
+        $school = $school->with('package', 'students.user', 'students.studentGuardian.guardian.user', 'staff.user')->find($school->id);
 
         return response()->json(compact('total_students', 'active_students', 'active_male', 'active_female', 'suspended_students', 'withdrawn_students', 'alumni', 'totalStaff', 'totalGuardian', 'school'));
     }

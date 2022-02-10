@@ -38,17 +38,25 @@ class UserResource extends JsonResource
 
         $my_wards_ids = [];
         if ($this->student) {
-            $school  = $this->student->school()->with(['currentTerm', 'currentSession'])->first();
+            $school  = $this->student->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
         }
         if ($this->guardian) {
             $wards = $this->guardian->guardianStudents;
-            $school  = $this->guardian->school()->with(['currentTerm', 'currentSession'])->first();
+            $school  = $this->guardian->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
             foreach ($wards as $ward) {
                 $my_wards_ids[] = $ward->student_id;
             }
         }
         if ($this->staff) {
-            $school  = $this->staff->school()->with(['currentTerm', 'currentSession'])->first();
+            $school  = $this->staff->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
+        }
+        $modules = [];
+        if ($school != '') {
+            $module_packages = $school->package->packageModules;
+            foreach ($module_packages as $module_package) {
+
+                $modules[] = $module_package->module->slug;
+            }
         }
         return [
             'id' => $this->id,
@@ -67,6 +75,7 @@ class UserResource extends JsonResource
             'notifications' => [],
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),
             'roles' => $rights,
+            'modules' => $modules,
             // 'role' => 'admin',
             'permissions' => array_map(
                 function ($permission) {
