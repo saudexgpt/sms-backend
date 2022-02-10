@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\School;
+use App\Models\Staff;
 use App\Models\State;
+use App\Models\Student;
 use Auth;
 
 use Illuminate\Http\Request;
@@ -62,26 +64,7 @@ class UsersController extends Controller
             'message' => 'Password does not match'
         ], 401);
     }
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
 
-    public function __construct()
-    {
-        $this->middleware('auth');
-
-
-    }*/
-
-    /**
-     * This manages privileges based on roles
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(User $user)
-    {
-    }
 
     /**
      * Show the form for creating a new resource.

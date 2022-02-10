@@ -32,6 +32,20 @@ class SchoolsController extends Controller
         // $group_of_schools = GroupOfSchool::orderBy('name')->get();
         return response()->json(compact('schools'));
     }
+
+    /**
+     * This manages privileges based on roles
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function fetchSchoolCommunity()
+    {
+        $school_id = $this->getSchool()->id;
+        $students = Student::with('user')->where('school_id', $school_id)->get();
+        $staff = Staff::with('user')->where('school_id', $school_id)->get();
+        $users = $students->merge($staff);
+        return response()->json(compact('users'), 200);
+    }
     public function create()
     {
 

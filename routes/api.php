@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CurriculumCategoryController;
 use App\Http\Controllers\DashboardsController;
+use App\Http\Controllers\Library\LibrariesController;
 use App\Http\Controllers\LMS\ClassroomsController;
 use App\Http\Controllers\LMS\QuizController;
 use App\Http\Controllers\Materials\CurriculaController;
@@ -186,6 +187,28 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         // });
     });
+    Route::group(['prefix' => 'library'], function () {
+
+        Route::get('/fetch-data', [LibrariesController::class, 'fetchData']);
+        Route::group(['prefix' => 'books'], function () {
+            Route::get('/', [LibrariesController::class, 'books']);
+            Route::post('store', [LibrariesController::class, 'storeBook']);
+            Route::put('update/{book}', [LibrariesController::class, 'updateBook']);
+            // Route::delete('destroy/{book}', [LibrariesController::class, 'destroyBook']);
+
+            Route::get('/category', [LibrariesController::class, 'bookCategory']);
+            Route::post('store-category', [LibrariesController::class, 'storeBookCategory']);
+            Route::put('update-category/{category}', [LibrariesController::class, 'updateBookCategory']);
+            // Route::delete('destroy-category/{category}', [LibrariesController::class, 'destroyBookCategory']);
+        });
+        Route::group(['prefix' => 'borrow'], function () {
+
+            Route::get('/', [LibrariesController::class, 'borrowedBooks']);
+            Route::post('new-borrowing', [LibrariesController::class, 'newBorrowing']);
+            Route::put('update-borrowing/{book}', [LibrariesController::class, 'updateBorrowedBooks']);
+            Route::put('return-book/{book}', [LibrariesController::class, 'returnBook']);
+        });
+    });
     Route::group(['prefix' => 'materials'], function () {
         Route::get('/teacher-curriculum', [CurriculaController::class, 'teacherCurriculum']);
         Route::post('/save-curriculum', [CurriculaController::class, 'store']);
@@ -276,6 +299,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     });
     Route::group(['prefix' => 'schools'], function () {
 
+
+        Route::get('/fetch-commumity', [SchoolsController::class, 'fetchSchoolCommunity']);
         Route::get('/', [SchoolsController::class, 'index']);
         Route::get('potential', [SchoolsController::class, 'potentialSchools']);
         Route::get('show/{school}', [SchoolsController::class, 'show']);
