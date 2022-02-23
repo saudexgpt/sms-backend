@@ -18,9 +18,12 @@ class PermissionsController extends Controller
      */
     public function index()
     {
-        //
-        $school = $this->getSchool();
-        $permissions =  Permission::where('hidden', '0')->orderBy('name')->get();
+        $user = $this->getUser();
+        if ($user->hasRole('super')) {
+            $permissions =  Permission::whereIn('type', ['1', '2'])->orderBy('name')->get();
+        } else {
+            $permissions =  Permission::whereIn('type', ['0', '2'])->orderBy('name')->get();
+        }
         return $this->render(compact('permissions'));
     }
 
