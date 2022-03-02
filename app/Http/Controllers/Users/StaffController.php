@@ -152,18 +152,17 @@ class StaffController extends Controller
         return $this->render(compact('staff'));
     }
 
-    public function destroy(Request $request)
+    public function destroy(Staff $staff)
     {
-        $id = $request->staff_id;
-        if ($this->getStaff()->id != $id) {
-            $staff = Staff::findOrFail($id);
-            if ($staff->delete()) {
-                return 'true';
-            }
-            return 'false';
+        if ($this->getStaff()->id != $staff->id) {
+            // unassign subject teacher
+
+            $user = $staff->user;
+            $user->delete();
+            $staff->delete();
         }
 
-        return 'false';
+        return response()->json([], 204);
     }
     public function assignStaffRole(Request $request)
     {

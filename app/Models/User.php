@@ -313,7 +313,12 @@ class User extends Authenticatable
             //get the users.id from the students table
             $this->id = $student->user_id;
             $this->dob = date('Y-m-d', strtotime($request->dob));
-
+            $gender = strtolower($request->gender);
+            if ($gender == 'm' || $request->gender == 'male') {
+                $this->gender = 'male';
+            } else {
+                $this->gender = 'female';
+            }
             //retrieve  user fields to perform update action
             $this->save();
 

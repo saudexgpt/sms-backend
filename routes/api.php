@@ -424,6 +424,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('staff/store', [StaffController::class, 'store']);
         Route::get('staff/show/{staff}', [StaffController::class, 'show']);
         Route::put('staff/update/{staff}', [StaffController::class, 'update']);
+        Route::delete('staff/destroy/{staff}', [StaffController::class, 'destroy']);
 
         Route::get('guardians', [GuardiansController::class, 'index']);
         Route::get('guardian/show/{guardian}', [GuardiansController::class, 'show']);

@@ -201,7 +201,8 @@ class UsersController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        // $user->delete();
+        // return response()->json([], 204);
     }
 
     public function existingUser(Request $request, User $users)
