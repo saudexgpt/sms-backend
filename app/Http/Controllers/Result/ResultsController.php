@@ -389,20 +389,24 @@ class ResultsController extends Controller
         return array($empty_half_record,  $empty_full_record);
     }
 
-    private function saveMidTermScore($result_detail, $result_settings)
+    private function saveMidTermScore($mid_term_score, $result_detail, $result_settings)
     {
         $no_of_ca_for_midterm = $result_settings->no_of_ca_for_midterm;
         $total_midterm_score = 0;
         $total_denominator = 0;
         for ($i = 1; $i <= $no_of_ca_for_midterm; $i++) {
             $assessment = 'ca' . $i;
+            $attainable_score = $result_settings->$assessment;
             $total_denominator += $result_settings->$assessment;
 
-            $total_midterm_score += ($result_detail->$assessment) ? $result_detail->$assessment : 0;
+            $ca_score_converted_from_mid_term = $attainable_score / 100 * $mid_term_score;
+            $result_detail->$assessment = $ca_score_converted_from_mid_term;
+            $result_detail->save();
+            // $total_midterm_score += ($result_detail->$assessment) ? $result_detail->$assessment : 0;
         }
-        $midterm_score_in_100_percent = $total_midterm_score / $total_denominator * 100;
-        $result_detail->mid_term = $midterm_score_in_100_percent;
-        $result_detail->save();
+        // $midterm_score_in_100_percent = $total_midterm_score / $total_denominator * 100;
+        // $result_detail->mid_term = $midterm_score_in_100_percent;
+        // $result_detail->save();
     }
 
     /**
@@ -458,8 +462,10 @@ class ResultsController extends Controller
 
         $student_result_detail->$label = $score;
 
+        if ($label === 'mid_term') {
 
-        $this->saveMidTermScore($student_result_detail, $result_settings);
+            $this->saveMidTermScore($score, $student_result_detail, $result_settings);
+        }
         //0$result_detail->save();
 
         // $mid_term = $student_result_detail->mid_term / 10; // we convert mid_term from 100 to over 10

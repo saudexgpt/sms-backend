@@ -114,8 +114,8 @@ class Result extends Model
             // remain the same so that there would be no descrepancies.
             // The major upgrade will affect result that will be with date from year 2022 and upwards
             $mid_term = 0;
-            $result_date = date('Y', strtotime($result_detail->created_at));
-            if ($result_date < '2022') {
+            $result_date = (int) date('Y', strtotime($result_detail->updated_at));
+            if ($result_date < 2022) {
                 $mid_term = $result_detail->mid_term / 10;
                 // if ($result_detail->sess_id == 6 && $result_detail->term_id < 2) {
                 //     $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
