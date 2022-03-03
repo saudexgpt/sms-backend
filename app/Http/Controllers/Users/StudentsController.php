@@ -11,10 +11,12 @@ use App\Models\Guardian;
 use App\Models\Level;
 use App\Models\LocalGovernmentArea;
 use App\Models\RegistrationPin;
+use App\Models\Result;
 use App\Models\SSession;
 use App\Models\State;
 use App\Models\Student;
 use App\Models\StudentsInClass;
+use App\Models\StudentsOfferingSubject;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -31,6 +33,62 @@ class StudentsController extends Controller
         $levels = $this->getLevels(); //Level::all();
 
         return $this->render(compact('levels'));
+    }
+    public function duplicateStudentsInClass()
+    {
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+
+
+        $duplicate_students_in_class = StudentsInClass::with(['student.user', 'classTeacher.c_class'])
+            ->where([
+                'sess_id' => $sess_id,
+                'school_id' => $school_id
+            ])
+            ->whereIn('student_id', function ($query) use ($school_id, $sess_id) {
+                $query->select('student_id')->from('students_in_classes')
+                    ->where([
+                        'sess_id' => $sess_id,
+                        'school_id' => $school_id
+                    ])
+                    ->groupBy('student_id')
+                    ->havingRaw('count(*) > 1');
+            })->get();
+        return response()->json(compact('duplicate_students_in_class'), 200);
+    }
+
+    public function removeDuplicateStudent(StudentsInClass $student_in_class)
+    {
+        $class_teacher_id = $student_in_class->class_teacher_id;
+        // $subject_teachers = $student_in_class->classTeacher->subjectTeachers()->select('id')->get()->toArray();
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $student_id = $student_in_class->student_id;
+        $results = Result::where([
+            'class_teacher_id' => $class_teacher_id,
+            'sess_id' => $sess_id,
+            'school_id' => $school_id,
+            'student_id' => $student_id
+        ])->get();
+
+        $results = Result::where([
+            'class_teacher_id' => $class_teacher_id,
+            'sess_id' => $sess_id,
+            'school_id' => $school_id,
+            'student_id' => $student_id
+        ])->get();
+        // return $students_offering_subjects = StudentsOfferingSubject::where([
+        //     'student_id' => $student_id,
+        //     'sess_id' => $sess_id,
+        //     'school_id' => $school_id
+        // ])->whereIn('subject_teacher_id', json_decode(json_encode($subject_teachers), true))->get();
+
+        $student_in_class->delete();
+        if ($results->isNotEmpty()) {
+
+            $results->delete();
+        }
+        return 'success';
     }
     public function allStudentsTable(Request $request)
     {

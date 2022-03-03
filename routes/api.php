@@ -406,6 +406,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     });
     Route::group(['prefix' => 'user-setup'], function () {
+
+        Route::get('duplicate-students', [StudentsController::class, 'duplicateStudentsInClass']);
+        Route::delete('remove-duplicate-student/{student_in_class}', [StudentsController::class, 'removeDuplicateStudent']);
+
         Route::get('all-students-table', [StudentsController::class, 'allStudentsTable']);
         Route::get('students/create', [StudentsController::class, 'create']);
         Route::post('students/store', [StudentsController::class, 'store']);
