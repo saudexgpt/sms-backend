@@ -86,7 +86,10 @@ class StudentsController extends Controller
         $student_in_class->delete();
         if ($results->isNotEmpty()) {
 
-            $results->delete();
+            foreach ($results as $result) {
+
+                $result->delete();
+            }
         }
         return 'success';
     }
