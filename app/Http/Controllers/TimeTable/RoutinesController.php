@@ -18,7 +18,14 @@ class RoutinesController extends Controller
 {
     public function fetchClasses()
     {
-        $class_teachers = ClassTeacher::with('c_class', 'subjectTeachers.subject', 'subjectTeachers.staff.user')->where('school_id', $this->getSchool()->id)->get();
+        $levels = $this->getLevels();
+        $level_ids = array_map(
+            function ($level) {
+                return $level['id'];
+            },
+            $levels->toArray()
+        );
+        $class_teachers = ClassTeacher::with('c_class', 'subjectTeachers.subject', 'subjectTeachers.staff.user')->whereIn('level_id', $level_ids)->where('school_id', $this->getSchool()->id)->orderBy('level_id')->get();
         return $this->render(compact('class_teachers'));
     }
 

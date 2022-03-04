@@ -349,8 +349,25 @@ class Controller extends BaseController
     }
     public function setLevels()
     {
-        // $user = $this->getUser();
+
         $school = $this->getSchool();
+        $user = $this->getUser();
+        if ($user->hasRole('admin')) {
+            $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school->id)->orderBy('id')->get();
+        } else {
+            $curriculum_level_group_ids_array = array_map(
+                function ($role) {
+                    return ($role['curriculum_level_group_ids'] !== null) ? explode('~', $role['curriculum_level_group_ids']) : [];
+                },
+                $user->roles->toArray()
+            );
+            $curriculum_level_group_id_each_array = [];
+
+            foreach ($curriculum_level_group_ids_array as $curriculum_level_group_id_array) {
+                $curriculum_level_group_id_each_array = array_merge($curriculum_level_group_id_each_array, $curriculum_level_group_id_array);
+            }
+            $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school->id)->whereIn('curriculum_level_group_id', $curriculum_level_group_id_each_array)->orderBy('id')->get();
+        }
         // $curriculum = $school->curriculum;
         /*$nur_levels = $pry_levels = $sec_levels = [];
         if ($school->nursery == "1") {
@@ -362,7 +379,7 @@ class Controller extends BaseController
         if ($school->secondary == "1") {
             $sec_levels = Level::where('curriculum', 'Secondary')->get();
         }*/
-        $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school->id)->orderBy('id')->get();
+
 
         // if ($user->hasRole('hod_sec') || $user->hasRole('principal')) {
         //     # code...

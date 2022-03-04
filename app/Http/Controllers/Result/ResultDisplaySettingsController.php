@@ -46,6 +46,7 @@ class ResultDisplaySettingsController extends Controller
         $result_setting->no_of_ca_for_midterm = $request->no_of_ca_for_midterm;
         $result_setting->display_exam_score_only_for_full_term = $display_exam_score_only_for_full_term;
         $result_setting->display_student_position = $request->display_student_position;
+        $result_setting->display_student_subject_position = $request->display_student_subject_position;
         $result_setting->display_highest_score = $request->display_highest_score;
         $result_setting->display_lowest_score = $request->display_lowest_score;
         $result_setting->display_average_score = $request->display_average_score;

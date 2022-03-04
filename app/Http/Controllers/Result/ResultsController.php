@@ -119,10 +119,11 @@ class ResultsController extends Controller
     {
         $school = $this->getSchool();
         $user = $this->getUser();
+
         $teacher = $this->getStaff();
         $levels = [];
         $class_teachers = [];
-        if ($user->hasRole('admin')) {
+        if ($user->hasPermission('can manage results')) {
 
             $levels = $this->getLevels();
         } else {
