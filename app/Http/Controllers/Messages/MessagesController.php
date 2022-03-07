@@ -187,7 +187,7 @@ class MessagesController extends Controller
 
         $recipients = [];
         $guardian = Guardian::where(['school_id' => $school_id, 'user_id' => $user_id])->first();
-        $guardian_wards = $guardian->guardianWards;
+        $guardian_wards = $guardian->guardianStudents;
         $teacher_id_array = [];
         foreach ($guardian_wards as $guardian_ward) {
             $student_in_class_obj = new StudentsInClass();
@@ -198,12 +198,19 @@ class MessagesController extends Controller
             if ($student_in_class->classTeacher) {
                 if (!in_array($student_in_class->classTeacher->teacher_id, $teacher_id_array)) {
 
-                    $recipients[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
+                    $staff = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
+                    if ($staff) {
+
+                        $recipients[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id); // school admin
+                    }
+
                     $teacher_id_array[] = $student_in_class->classTeacher->teacher_id;
                 }
             }
         }
+        $staff = Staff::with('user')->where('school_id',  $school_id)->first();
         $recipients[] = Staff::with('user')->where('school_id',  $school_id)->first(); // school admin
+
         return $recipients;
     }
     /**
@@ -276,6 +283,27 @@ class MessagesController extends Controller
             return (string) 'success';
         }
         return (string) 'failed';
+    }
+    private function processRepliedMessages($request, $message)
+    {
+        $user_id = $this->getUser()->id;
+        if ($message->replies == NULL || $message->replies == '') {
+            $old_replies = '';
+        } else {
+            $old_replies = '~' . $message->replies;
+        }
+        $replier = $user_id;
+        $reply_message = $request->message;
+
+        $reply_details = json_encode(
+            array(
+                'replier' => $replier,
+                'message' => $reply_message
+            )
+        ) . $old_replies;
+
+        $message->replies = $reply_details;
+        $message->save();
     }
     public function update(Request $request, Message $message)
     {
@@ -384,6 +412,26 @@ class MessagesController extends Controller
             $message_details->replies = $this->formatMessageReplies($replies);
         }
         return $this->render(compact('message_details', 'options', 'recipients'));
+    }
+    public function formatMessageReplies($replies)
+    {
+        $replies_array = explode('~', $replies);
+
+        foreach ($replies_array as $reply) :
+            $decode_reply = json_decode($reply);
+
+            $replier_detail = User::find($decode_reply->replier);
+
+            $decode_reply->first_name = $replier_detail->first_name;
+            $decode_reply->last_name = $replier_detail->last_name;
+            $decode_reply->email = $replier_detail->email;
+            $decode_reply->username = $replier_detail->username;
+
+            $json_repy[] = $decode_reply;
+        endforeach;
+
+
+        return $json_repy;
     }
 
     // public function formatMessageReplies($replies)

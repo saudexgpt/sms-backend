@@ -314,7 +314,7 @@ class User extends Authenticatable
             $this->id = $student->user_id;
             $this->dob = date('Y-m-d', strtotime($request->dob));
             $gender = strtolower($request->gender);
-            if ($gender == 'm' || $request->gender == 'male') {
+            if ($gender == 'm' || $gender == 'male') {
                 $this->gender = 'male';
             } else {
                 $this->gender = 'female';
@@ -327,7 +327,7 @@ class User extends Authenticatable
             $this->dob = date('Y-m-d', strtotime($request->dob));
             $this->username = $username;
             $gender = strtolower($request->gender);
-            if ($gender == 'm' || $request->gender == 'male') {
+            if ($gender == 'm' || $gender == 'male') {
                 $this->gender = 'male';
             } else {
                 $this->gender = 'female';
