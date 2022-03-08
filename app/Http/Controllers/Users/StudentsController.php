@@ -352,6 +352,7 @@ class StudentsController extends Controller
         $guardian = $student_guardian->guardian;
         $guardian_user = $guardian->user;
         $sess_id = $this->getSession()->id;
+        $request->admission_year = SSession::find($request->admission_sess_id)->name;
         try {
             // update student details
             $student->saveStudentInfo($request, 'update');
