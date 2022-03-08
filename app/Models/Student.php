@@ -185,7 +185,7 @@ class Student extends Model
             $id = $request->student_id;
             $student = Student::findOrFail($id);
             //$student->class_id = $request->class_id;
-            $this->admission_year = $request->admission_year;
+            $student->admission_year = $request->admission_year;
             $student->current_level = $request->level_id;
             $student->admission_sess_id = $request->admission_sess_id;
             $student->is_prev_cert_submitted = $request->is_prev_cert_submitted;
