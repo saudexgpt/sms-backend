@@ -194,17 +194,20 @@ class MessagesController extends Controller
             $student_id = $guardian_ward->student_id;
 
             $student_in_class = $student_in_class_obj->fetchStudentInClass($student_id, $sess_id, $term_id, $school_id);
+            if ($student_in_class) {
+                # code...
 
-            if ($student_in_class->classTeacher) {
-                if (!in_array($student_in_class->classTeacher->teacher_id, $teacher_id_array)) {
+                if ($student_in_class->classTeacher) {
+                    if (!in_array($student_in_class->classTeacher->teacher_id, $teacher_id_array)) {
 
-                    $staff = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
-                    if ($staff) {
+                        $staff = Staff::with('user')->find($student_in_class->classTeacher->teacher_id);
+                        if ($staff) {
 
-                        $recipients[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id); // school admin
+                            $recipients[] = Staff::with('user')->find($student_in_class->classTeacher->teacher_id); // school admin
+                        }
+
+                        $teacher_id_array[] = $student_in_class->classTeacher->teacher_id;
                     }
-
-                    $teacher_id_array[] = $student_in_class->classTeacher->teacher_id;
                 }
             }
         }
