@@ -49,7 +49,9 @@ class ResultDisplaySettingsController extends Controller
         $result_setting->display_student_subject_position = $request->display_student_subject_position;
         $result_setting->display_highest_score = $request->display_highest_score;
         $result_setting->display_lowest_score = $request->display_lowest_score;
-        $result_setting->display_average_score = $request->display_average_score;
+        $result_setting->display_class_average_score = $request->display_class_average_score;
+        $result_setting->display_student_subject_average = $request->display_student_subject_average;
+        $result_setting->display_student_class_average = $request->display_student_class_average;
         $result_setting->display_grade = $request->display_grade;
         $result_setting->display_student_behovior_and_skill_rating = $request->display_student_behovior_and_skill_rating;
         $result_setting->display_logo_for_result_background = $request->display_logo_for_result_background;
