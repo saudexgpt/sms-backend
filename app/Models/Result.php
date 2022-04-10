@@ -109,6 +109,7 @@ class Result extends Model
     {
         $total_ca_score = 0;
         $no_of_ca = $result_settings->no_of_ca;
+        $display_exam_score_only_for_full_term = $result_settings->display_exam_score_only_for_full_term;
         // if ($result_settings->display_exam_score_only_for_full_term === 'no') {
         // we want to make sure that previous inputed results before the major upgrade
         // remain the same so that there would be no descrepancies.
@@ -117,18 +118,17 @@ class Result extends Model
         $result_date = (int) date('Y', strtotime($result_detail->updated_at));
         if ($result_date < 2022) {
             $mid_term = $result_detail->mid_term / 10;
-            // if ($result_detail->sess_id == 6 && $result_detail->term_id < 2) {
-            //     $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
-            // } else {
-            //     $mid_term = $result_detail->mid_term / 10; // convert midterm from 100 to 10
-            // }
         }
-        for ($i = 1; $i <= $no_of_ca; $i++) {
-            $assessment = 'ca' . $i;
-            $score = $result_detail->$assessment;
-            $total_ca_score += ($score) ? $score : 0;
+        // we want to make sure ca tests are calculated along exam only when $display_exam_score_only_for_full_term is 'yes'
+        if ($display_exam_score_only_for_full_term  === 'no') {
+
+            for ($i = 1; $i <= $no_of_ca; $i++) {
+                $assessment = 'ca' . $i;
+                $score = $result_detail->$assessment;
+                $total_ca_score += ($score) ? $score : 0;
+            }
+            $total_ca_score += $mid_term;
         }
-        $total_ca_score += $mid_term;
         // }
         return $total_ca_score;
     }
