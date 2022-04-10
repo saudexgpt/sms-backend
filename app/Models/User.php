@@ -183,28 +183,28 @@ class User extends Authenticatable
         $username = $request->username;
         $email = $request->email;
 
-        $user = User::where('username', $username)->first();
+        $user = User::withTrashed()->where('username', $username)->first();
         if ($email != 'NIL' && $email != '') {
 
-            $user = User::where('email', $email)->first();
+            $user = User::withTrashed()->where('email', $email)->first();
             if ($phone != 'NIL' && $phone != '') {
-                $user = User::where('email', $email)->orWhereIn('phone1', [$phone, $phone2])->first();
+                $user = User::withTrashed()->where('email', $email)->orWhereIn('phone1', [$phone, $phone2])->first();
             } elseif ($phone2 != 'NIL' && $phone2 != '') {
-                $user = User::where('email', $email)->orWhereIn('phone2', [$phone, $phone2])->first();
+                $user = User::withTrashed()->where('email', $email)->orWhereIn('phone2', [$phone, $phone2])->first();
             }
         } elseif ($phone != 'NIL' && $phone != '') {
-            $user = User::where('phone1', $phone)->first();
+            $user = User::withTrashed()->where('phone1', $phone)->first();
             /*if($phone2 != 'NIL'){
                 $user = User::whereIn('phone1', [$phone, $phone2])->first();
             }*/
         } elseif ($phone2 != 'NIL' && $phone2 != '') {
 
-            $user = User::whereIn('phone2', $phone2)->first();
+            $user = User::withTrashed()->whereIn('phone2', $phone2)->first();
         }
         if ($action == 'update') {
 
             $user_id  = $request->parent_user_id;
-            $user = User::find($user_id);
+            $user = User::withTrashed()->find($user_id);
             $user->gender = ($request->sponsor_gender) ? $request->sponsor_gender : 'male';
             $user->photo = photoPath($request->school, ['type' => 'default', 'file' => strtolower($request->gender) . '.png']);
             //$user->mime = $request->mime;

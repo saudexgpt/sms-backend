@@ -111,7 +111,9 @@ class StudentsController extends Controller
         // $students_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user', 'classTeachers.c_class'])->where(['sess_id' => $sess_id, 'level_id'=> $level_id, 'school_id' => $school_id])->get();
         $level = Level::with(['classTeachers.c_class', 'studentsInClass' => function ($query) use ($school_id, $sess_id) {
             $query->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id]);
-        }, 'studentsInClass.student.studentGuardian.guardian.user', 'studentsInClass.student.user.country.states.lgas', 'studentsInClass.student.user.state.lgas', 'studentsInClass.student.user.lga', 'studentsInClass.classTeacher.c_class'])->where('school_id',  $school_id)->find($level_id);
+        }, 'studentsInClass.student.studentGuardian.guardian.user' => function ($query) {
+            $query->withTrashed();
+        }, 'studentsInClass.student.user.country.states.lgas', 'studentsInClass.student.user.state.lgas', 'studentsInClass.student.user.lga', 'studentsInClass.classTeacher.c_class'])->where('school_id',  $school_id)->find($level_id);
 
         $students_in_class = $level->studentsInClass;
 
