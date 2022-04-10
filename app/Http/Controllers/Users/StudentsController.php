@@ -352,7 +352,7 @@ class StudentsController extends Controller
         $student_user = $student->user;
         $student_guardian = $student->studentGuardian;
         $guardian = $student_guardian->guardian;
-        $guardian_user = $guardian->user;
+        $guardian_user = $guardian->user->withTrashed()->first();
         $sess_id = $this->getSession()->id;
         $request->admission_year = SSession::find($request->admission_sess_id)->name;
         try {
