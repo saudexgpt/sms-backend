@@ -249,7 +249,6 @@ class ResultsController extends Controller
     //     }
     //     return response()->json($data, 200);
     // }
-
     public function getSubjectStudent(Request $request)
     {
         $result = new Result();
@@ -432,6 +431,52 @@ class ResultsController extends Controller
         }
     }
 
+    public function normalizeResult(Request $request)
+    {
+        $result = new Result();
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+
+        //if the teacher makes specific session and term section, we use this instead
+        if (isset($request->sess_id, $request->term_id)) {
+            $term_id = $request->term_id; //selected term
+
+            $sess_id = $request->sess_id; //selected;
+        }
+        $subject_teacher_id = $request->subject_teacher_id;
+        $subject_teacher = SubjectTeacher::find($subject_teacher_id);
+
+        $class_teacher = $subject_teacher->classTeacher;
+        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+
+        $result_settings = $this->getResultSettings($curriculum_level_group_id);
+        $class_teacher_id = $class_teacher->id;
+        $teacher_id = $this->getStaff()->id;
+        $teacher = new Teacher();
+        $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
+        foreach ($class_students as $student) :
+            if ($student->studentship_status !== 'left') {
+                $student_id = $student->id;
+
+                $reg_no = $student->registration_no;
+                //check whether any record exits for this subject and student if not create one
+                $student_result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
+
+                $this->saveMidTermScore($student_result_detail->mid_term, $student_result_detail, $result_settings);
+
+                $exam = $student_result_detail->exam;
+
+                $test = $result->addCaScores($student_result_detail, $result_settings);
+
+                //add the total and save
+                $total = $result->addScores($test, $exam);
+                $student_result_detail->comments = defaultComment($total);
+                $student_result_detail->total = $total;
+                $student_result_detail->save();
+            }
+        endforeach;
+    }
     /**
      * Show the form for creating a new resource.
      *

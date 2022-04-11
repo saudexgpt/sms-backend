@@ -296,6 +296,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudent']);
         // Route::get('get-subject-students', [ResultsController::class, 'getSubjectStudentNew']);
         Route::post('record-result', [ResultsController::class, 'recordResult']);
+        Route::post('normalize-result', [ResultsController::class, 'normalizeResult']);
+
         Route::post('result-action', [ResultsController::class, 'resultAction']);
         Route::post('upload-bulk-result', [ResultsController::class, 'uploadBulkResult']);
         Route::get('get-recorded-result', [ResultsController::class, 'getRecordedResultForApproval']);
