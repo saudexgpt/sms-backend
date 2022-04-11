@@ -290,18 +290,21 @@ class SubjectsController extends Controller
         $registered_class_students = [];
         $unregistered_class_students = [];
         foreach ($students_in_class as $student_in_class) :
-            $all_students[] = $student_in_class->student;
-            $student_offering_subject = StudentsOfferingSubject::where([
-                'subject_teacher_id' => $subject_teacher_id,
-                'sess_id' => $sess_id,
-                'school_id' => $school_id,
-                'student_id' => $student_in_class->student_id
-            ])->first();
+            if ($student_in_class->student) {
 
-            if ($student_offering_subject) {
-                $registered_class_students[] = $student_in_class->student;
-            } else {
-                $unregistered_class_students[] = $student_in_class->student;
+                $all_students[] = $student_in_class->student;
+                $student_offering_subject = StudentsOfferingSubject::where([
+                    'subject_teacher_id' => $subject_teacher_id,
+                    'sess_id' => $sess_id,
+                    'school_id' => $school_id,
+                    'student_id' => $student_in_class->student_id
+                ])->first();
+
+                if ($student_offering_subject) {
+                    $registered_class_students[] = $student_in_class->student;
+                } else {
+                    $unregistered_class_students[] = $student_in_class->student;
+                }
             }
 
         endforeach;
