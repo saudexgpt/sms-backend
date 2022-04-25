@@ -34,6 +34,7 @@ class PermissionsController extends Controller
         $user = User::find($request->user_id);
         $user->syncPermissions($request->permissions);
         $permissions = $user->allPermissions();
+        $user->flushCache();
         return response()->json(compact('permissions'), 200);
     }
     public function assignRolePermissions(Request $request)
@@ -41,6 +42,7 @@ class PermissionsController extends Controller
         $role = Role::find($request->role_id);
         $role->syncPermissions($request->permissions);
         $permissions = $role->permissions;
+        $role->flushCache();
         return response()->json(compact('permissions'), 200);
     }
     // public function removeAssignedPermission(Request $request)

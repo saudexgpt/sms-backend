@@ -114,7 +114,7 @@ class RolesController extends Controller
     {
         $user = User::find($request->user_id);
         $user->syncRoles($request->roles);
-
+        $user->flushCache();
         $roles = $user->roles()->with('permissions')->get();
         $permissions = [];
         foreach ($roles as $role) {
