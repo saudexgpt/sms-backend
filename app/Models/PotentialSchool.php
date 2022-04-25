@@ -33,7 +33,7 @@ class PotentialSchool extends Model
         return $folder_key->folder_key;
     }
 
-    public function registerSchool($request)
+    public function registerSchool($request, $registrar_id)
     {
 
         $school = PotentialSchool::where('name', $request->name)->orWhere('email', $request->email)->orWhere('slug', $request->slug)->first();
@@ -72,6 +72,8 @@ class PotentialSchool extends Model
                 $school->secondary = '1';
             }
             $school->curriculum = $request->curriculum;
+            $school->registered_by = $registrar_id; // the registrar is the Partner
+
             // $school->logo = $logo;
             // $school->mime = $mime;
             // $school->preferred_template = 'custom_one';

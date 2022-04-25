@@ -2,82 +2,54 @@
 
 namespace App\Models;
 
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Auth;
-use App\Notifications\PartnerResetPasswordNotification;
 use Illuminate\Database\Eloquent\Model;
 
-class Partner extends Authenticatable
+class Partner extends Model
 {
     //
-    use Notifiable;
-
-    protected $table = 'partners';
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = [
-         'partner_username', 'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
-    
-    /**
-     * Encrypt password
-     * @param hashed $value
-     */
-    protected function setPasswordAttribute($value) {
-        $this->attributes['password'] = bcrypt($value);
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     *The return value is in array form and a foreach loop should be used to fetch each element
-     */
-    public function partnerSchools() 
+    public function user()
     {
-        return $this->hasMany(PartnerSchool::class);
+        return $this->belongsTo(User::class);
     }
-    
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      *The return value is in array form and a foreach loop should be used to fetch each element
      */
-    public function partnerEarnings() 
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     *The return value is in array form and a foreach loop should be used to fetch each element
+     */
+    public function partnerEarnings()
     {
         return $this->hasMany(PartnerEarning::class);
     }
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      *The return value is in array form and a foreach loop should be used to fetch each element
      */
-    public function schoolProposals() 
+    public function schoolProposals()
     {
         return $this->hasMany(SchoolProposal::class);
     }
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      *The return value is in array form and a foreach loop should be used to fetch each element
      */
-    public function subPartner() 
+    public function subPartner()
     {
         return $this->hasMany(SubPartner::class);
     }
-    
-    public function referrer() 
+
+    public function referrer()
     {
         return $this->belongsTo(SubPartner::class, 'child_partner_id', 'id');
     }
@@ -87,8 +59,10 @@ class Partner extends Authenticatable
      * @param  string  $token
      * @return void
      */
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new PartnerResetPasswordNotification($token));
-    }
+    // public function sendPasswordResetNotification($token)
+    // {
+    //     $this->notify(new PartnerResetPasswordNotification($token));
+    // }
+
+
 }

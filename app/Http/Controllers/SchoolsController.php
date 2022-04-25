@@ -28,7 +28,20 @@ class SchoolsController extends Controller
      */
     public function index()
     {
-        $schools = School::with('package.packageModules.module')->get();
+        $user = $this->getUser();
+        if ($user->isSuperAdmin()) {
+
+            $schools = School::with('package.packageModules.module')->get();
+        } else {
+            $schools = [];
+            $partner_schools = $user->partnerSchools()->with('school.package.packageModules.module')->get();
+            if ($partner_schools->isNotEmpty()) {
+
+                foreach ($partner_schools as $partner_school) {
+                    $schools[] = $partner_school->school;
+                }
+            }
+        }
         // $group_of_schools = GroupOfSchool::orderBy('name')->get();
         return response()->json(compact('schools'));
     }
@@ -125,6 +138,7 @@ class SchoolsController extends Controller
         $user->raw_password = 'password'; //$user->username;
         $request->user_id = $user->id;
 
+        $partner = $this->getPartner();
         //add this school to our partner who registered it if applicable
         if (isset($request->referral_id) && $request->referral_id != "") {
             # code...
@@ -243,8 +257,12 @@ class SchoolsController extends Controller
         // // $partner_sch_obj = new PartnerSchool();
         // $uniq_num_gen_obj = new UniqNumGen();
         $school = new PotentialSchool();
-
-        $registered_school = $school->registerSchool($request);
+        $user = $this->getUser();
+        $user_id = NULL;
+        if ($user) {
+            $user_id = $user->id;
+        }
+        $registered_school = $school->registerSchool($request, $user_id);
         if ($registered_school === 'Exist') {
             return response()->json(['message' => "This School's information already exist"], 500);
             # code...
@@ -260,7 +278,12 @@ class SchoolsController extends Controller
 
         //return "These are potential schools we have";
 
-        $potential_schools = PotentialSchool::where('is_active', '0')->orderBy('created_at', 'DESC')->get();
+        $user = $this->getUser();
+        if ($user->isSuperAdmin()) {
+            $potential_schools = PotentialSchool::where('is_active', '0')->orderBy('created_at', 'DESC')->get();
+        } else {
+            $potential_schools = $user->potentialSchools()->where('is_active', '0')->orderBy('created_at', 'DESC')->get();
+        }
 
         return response()->json(compact('potential_schools'));
     }
@@ -322,10 +345,10 @@ class SchoolsController extends Controller
         $request->user_id = $user->id;
 
         //add this school to our partner who registered it if applicable
-        if (isset($request->referral_id) && $request->referral_id != "") {
+        if ($potential_school->registered_by != NULL) {
             # code...
-            $partner_id = $request->referral_id;
-            $partner_sch_obj->addPartnerSchool($partner_id, $request->school_id);
+            $partner_id = $potential_school->registered_by;
+            $partner_sch_obj->addPartnerSchool($partner_id, $registered_school->id);
         }
 
         if ($status == "new_entry") {

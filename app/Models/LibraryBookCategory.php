@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class LibraryBookCategory extends Model
 {
     use HasFactory;
+
+    public function levelGroup()
+    {
+        return $this->belongsTo(CurriculumLevelGroup::class, 'curriculum_level_group_id', 'id');
+    }
 }

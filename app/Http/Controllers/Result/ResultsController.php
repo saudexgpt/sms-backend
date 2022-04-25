@@ -174,7 +174,7 @@ class ResultsController extends Controller
     //     $class_teacher = $subject_teacher->classTeacher;
     //     $class_teacher_id = $class_teacher->id;
     //     $class = CClass::find($class_teacher->class_id);
-    //     $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+    //     $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
     //     $grades = $this->getLevelGrades($curriculum_level_group_id);
 
@@ -269,7 +269,7 @@ class ResultsController extends Controller
         $class_teacher = $subject_teacher->classTeacher;
         $class_teacher_id = $class_teacher->id;
         $class = CClass::find($class_teacher->class_id);
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $grades = $this->getLevelGrades($curriculum_level_group_id);
@@ -448,7 +448,7 @@ class ResultsController extends Controller
         $subject_teacher = SubjectTeacher::find($subject_teacher_id);
 
         $class_teacher = $subject_teacher->classTeacher;
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $class_teacher_id = $class_teacher->id;
@@ -505,7 +505,7 @@ class ResultsController extends Controller
         $subject_teacher = SubjectTeacher::with('subject')->find($subject_teacher_id);
 
         $class_teacher = $subject_teacher->classTeacher;
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
 
@@ -608,7 +608,7 @@ class ResultsController extends Controller
             $subject_teacher = SubjectTeacher::find($subject_teacher_id);
             $class_teacher = $subject_teacher->classTeacher;
             $class_teacher_id = $class_teacher->id;
-            $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+            $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
             $result_settings = $this->getResultSettings($curriculum_level_group_id);
             $teacher_id = $this->getStaff()->id;
@@ -800,7 +800,7 @@ class ResultsController extends Controller
         $class_name = $class_teacher->c_class->name;
 
         $school_id = $this->getSchool()->id;
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $sess_id = $request->sess_id;
@@ -960,7 +960,7 @@ class ResultsController extends Controller
         }
 
         $class_teacher = ClassTeacher::find($class_teacher_id);
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $options = [
@@ -1078,7 +1078,7 @@ class ResultsController extends Controller
 
         $subject_teachers = SubjectTeacher::with(['subject', 'staff.user'])->where('class_teacher_id', $class_teacher_id)->where('teacher_id', '!=', NULL)->get();
 
-        $curriculum_level_group_id = $class_details->level->levelGroup->id;
+        $curriculum_level_group_id = $class_details->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $cant_approve = 0;
@@ -1189,7 +1189,7 @@ class ResultsController extends Controller
 
         $class_details = ClassTeacher::find($class_teacher_id);
 
-        $curriculum_level_group_id = $class_details->level->levelGroup->id;
+        $curriculum_level_group_id = $class_details->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $options = [
@@ -1268,7 +1268,7 @@ class ResultsController extends Controller
         $class_teacher_id = $request->class_teacher_id;
         $class_teacher = ClassTeacher::find($class_teacher_id);
 
-        $curriculum_level_group_id = $class_teacher->level->levelGroup->id;
+        $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
         $school_id = $this->getSchool()->id;

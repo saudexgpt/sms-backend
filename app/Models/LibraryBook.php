@@ -14,6 +14,10 @@ class LibraryBook extends Model
     {
         return $this->hasMany(LibraryBorrowedBook::class, 'library_book_id', 'id');
     }
+    public function levelGroup()
+    {
+        return $this->belongsTo(CurriculumLevelGroup::class, 'curriculum_level_group_id', 'id');
+    }
     public function category()
     {
         return $this->belongsTo(LibraryBookCategory::class, 'library_book_category_id', 'id');

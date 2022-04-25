@@ -152,6 +152,8 @@ class UsersController extends Controller
     {
         //
         $school = $this->getSchool();
+
+        $folder_key = ($school) ? "schools/" . $school->folder_key . '/profile_img' : 'photo';
         $user = User::find($request->user_id);
         if ($request->file('photo') != null && $request->file('photo')->isValid()) {
             $mime = $request->file('photo')->getClientMimeType();
@@ -160,7 +162,6 @@ class UsersController extends Controller
                 $name = str_replace('@', '_', $user->username);
                 $name = str_replace('/', '_', $user->username);
                 $name = str_replace('.', '_', $name) . "." . $request->file('photo')->guessClientExtension();
-                $folder_key = $school->folder_key . '/profile_img';;
                 $photo_name = $user->uploadFile($request, $name, $folder_key);
                 $user->photo = $photo_name;
                 $user->save();

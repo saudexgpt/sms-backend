@@ -15,6 +15,7 @@ use App\Models\Guardian;
 use App\Models\Level;
 use App\Models\LocalGovernmentArea;
 use App\Models\News;
+use App\Models\Partner;
 use App\Models\Permission;
 use App\Models\ResultDisplaySetting;
 use App\Models\Role;
@@ -87,10 +88,6 @@ class Controller extends BaseController
 
                         $this->setSchool($school_id);
                     }
-                }
-
-                if ($this->getUser()->role == "partner") {
-                    $this->setPartner();
                 }
             }
             return $next($request);
@@ -241,7 +238,18 @@ class Controller extends BaseController
 
         return $this->user;
     }
+    public function setPartner()
+    {
+        $user = $this->getUser();
+        $this->partner  = Partner::where('user_id', $user->id)->first();
+    }
 
+    public function getPartner()
+    {
+        $this->setPartner();
+
+        return $this->partner;
+    }
     public function setStaff()
     {
 
@@ -249,7 +257,6 @@ class Controller extends BaseController
 
         //this updates the staff table with the user_id if not exist;
         $staff = Staff::with('user')->where('user_id', $user->id)->first();
-
 
         $this->staff = $staff;
     }

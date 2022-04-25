@@ -77,6 +77,14 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($value);
     }
+    public function partnerSchools()
+    {
+        return $this->hasMany(PartnerSchool::class, 'user_id', 'id');
+    }
+    public function potentialSchools()
+    {
+        return $this->hasMany(PotentialSchool::class, 'registered_by', 'id');
+    }
     public function getUser($value, $phone = null)
     {
         //
@@ -86,12 +94,10 @@ class User extends Authenticatable
         return  User::where('email', $value)->first();
     }
 
-    public function uploadFile($request, $file_name, $folder_key)
+    public function uploadFile($request, $file_name, $folder)
     {
         $subdomain = ""; //School::where('folder_key', $folder_key)->first()->sub_domain;
         $storage_subfolder = ''; //'storage/';//$subdomain.'/storage/';
-
-        $folder = "schools/" . $folder_key;
 
         $upload_directory = $storage_subfolder . $folder;
 
@@ -342,7 +348,40 @@ class User extends Authenticatable
             return $this->id;
         }
     }
+    public function saveUserAsPartner($request)
+    {
+        $email = $request->email;
+        $username = $request->username;
+        $user = $this->getUser($email);
+        if (!$user) {
+            $this->first_name = $request->first_name;
+            $this->last_name = $request->last_name;
+            $this->email = $email;
+            $this->address = $request->address;
+            $this->password = $request->password;
+            $this->phone1 = $request->phone1;
+            $this->phone2 = $request->phone2;
+            $this->role = 'company-staff';
+            $this->gender = $request->gender;
+            $this->username = $username;
+            $photo_name = photoPath($this->school, ['type' => 'default', 'file' => strtolower($request->gender) . '.png']);
+            $mime = $request->mime;
+            if ($request->file('photo') != null && $request->file('photo')->isValid()) {
+                $mime = $request->file('photo')->getClientMimeType();
+                $name = str_replace('/', '-', $username) . "." . $request->file('photo')->guessClientExtension();
+                $folder_key = $request->folder_key . "/photo/staff";
+                $photo_name = $this->uploadFile($request, $name, $folder_key);
+            }
 
+            $this->photo = $photo_name;
+            $this->mime = $mime;
+            $this->password_status = 'custom'; //defaultPasswordStatus();
+            $this->save();
+
+            return $this;
+        }
+        return $user;
+    }
     public function isSuperAdmin(): bool
     {
         foreach ($this->roles as $role) {

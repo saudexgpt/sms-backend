@@ -32,6 +32,7 @@ use App\Http\Controllers\Setup\TermsController;
 use App\Http\Controllers\Setup\TimelinesController;
 use App\Http\Controllers\TimeTable\RoutinesController;
 use App\Http\Controllers\Users\GuardiansController;
+use App\Http\Controllers\Users\PartnersController;
 use App\Http\Controllers\Users\StudentsController;
 use App\Http\Controllers\Users\UsersController;
 use App\Http\Controllers\Users\StaffController;
@@ -59,14 +60,15 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('user', [AuthController::class, 'user']); //->middleware('permission:read-users');
     });
 });
-Route::group(['prefix' => 'school'], function () {
-    Route::get('create', [SchoolsController::class, 'create']);
-    Route::post('register', [SchoolsController::class, 'registerPotentialSchool']);
-});
+
 
 //////////////////////////////// APP APIS //////////////////////////////////////////////
 Route::group(['middleware' => 'auth:sanctum'], function () {
 
+    Route::group(['prefix' => 'school'], function () {
+        Route::get('create', [SchoolsController::class, 'create']);
+        Route::post('register', [SchoolsController::class, 'registerPotentialSchool']);
+    });
     // Protected routes for authenticated users
     Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
@@ -438,5 +440,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::group(['prefix' => 'guardian'], function () {
         Route::get('wards', [GuardiansController::class, 'guardianWards']);
+    });
+
+
+    Route::group(['prefix' => 'partners'], function () {
+        Route::get('/', [PartnersController::class, 'index']);
+        Route::post('register', [PartnersController::class, 'store']);
+        Route::put('update/{partner}', [PartnersController::class, 'update']);
     });
 });

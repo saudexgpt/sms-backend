@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Library;
 
 use App\Http\Controllers\Controller;
+use App\Models\CurriculumLevelGroup;
+use App\Models\Level;
 use App\Models\LibraryBook;
 use App\Models\LibraryBookCategory;
 use App\Models\LibraryBorrowedBook;
@@ -25,12 +27,14 @@ class LibrariesController extends Controller
     }
     public function books(Request $request)
     {
+        $user = $this->getUser();
         $school_id = $this->getSchool()->id;
         $searchParams = $request->all();
         $bookQuery = LibraryBook::query();
         $limit = 10;
         $keyword = Arr::get($searchParams, 'keyword', '');
         $category = Arr::get($searchParams, 'category_id', '');
+        $curriculum_level_group_id = Arr::get($searchParams, 'curriculum_level_group_id', '');
         if (!empty($keyword)) {
             $bookQuery->where(function ($q) use ($keyword) {
                 $q->where('ISBN', 'LIKE', '%' . $keyword . '%');
@@ -43,9 +47,19 @@ class LibrariesController extends Controller
         if (!empty($category)) {
             $bookQuery->where('library_book_category_id', $category);
         }
+        if (!empty($curriculum_level_group_id)) {
+            $bookQuery->where('curriculum_level_group_id', $curriculum_level_group_id);
+        }
+        if ($user->role === 'student') {
+            $student = $this->getStudent();
+            $level_id = $student->current_level;
+            $level = Level::find($level_id);
+            $curriculum_level_group_id = $level->curriculum_level_group_id;
+            $bookQuery->where('curriculum_level_group_id', $curriculum_level_group_id);
+        }
         $books = $bookQuery->with(['borrowedBooks' => function ($q) {
             $q->where('is_returned', 'no');
-        }, 'borrowedBooks.borrower', 'borrowedBooks.processor', 'borrowedBooks.receiver', 'category', 'recordedBy'])->where('school_id', $school_id)->orderBy('id', 'DESC')->paginate($limit);
+        }, 'borrowedBooks.borrower', 'borrowedBooks.processor', 'borrowedBooks.receiver', 'category', 'levelGroup', 'recordedBy'])->where('school_id', $school_id)->orderBy('id', 'DESC')->paginate($limit);
 
         return response()->json(compact('books'), 200);
     }
@@ -60,6 +74,8 @@ class LibrariesController extends Controller
         }
 
         $book->school_id = $school_id;
+        $book->curriculum_level_group_id = $request->curriculum_level_group_id;
+
         $book->library_book_category_id = $request->library_book_category_id;
         $book->ISBN = $isbn;
         $book->title = $request->title;
@@ -102,7 +118,17 @@ class LibrariesController extends Controller
     public function bookCategory()
     {
         $school_id = $this->getSchool()->id;
-        $book_categories = LibraryBookCategory::where('school_id', $school_id)->orderBy('name')->get();
+        $user = $this->getUser();
+        $bookQuery = LibraryBookCategory::query();
+        if ($user->role === 'student') {
+            $student = $this->getStudent();
+            $level_id = $student->current_level;
+            $level = Level::find($level_id);
+            $curriculum_level_group_id = $level->curriculum_level_group_id;
+
+            $bookQuery->where('curriculum_level_group_id', $curriculum_level_group_id);
+        }
+        $book_categories = $bookQuery->with('levelGroup')->where('school_id', $school_id)->orderBy('name')->get();
 
         return response()->json(compact('book_categories'), 200);
     }
@@ -117,6 +143,7 @@ class LibrariesController extends Controller
         }
 
         $book_category->school_id = $school_id;
+        $book_category->curriculum_level_group_id = $request->curriculum_level_group_id;
         $book_category->name = $request->name;
         $book_category->description = $request->description;
         $book_category->save();
@@ -126,6 +153,7 @@ class LibrariesController extends Controller
 
     public function updateBookCategory(Request $request, LibraryBookCategory $category)
     {
+        $category->curriculum_level_group_id = $request->curriculum_level_group_id;
         $category->name = $request->name;
         $category->description = $request->description;
         $category->save();

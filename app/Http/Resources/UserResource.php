@@ -64,8 +64,10 @@ class UserResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' =>  $this->last_name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => $this->phone1 . ' | ' . $this->phone2,
             'username' => $this->username,
+            'gender' => $this->gender,
+            'address' =>  $this->address,
             'student' => $this->student,
             'guardian' => $this->guardian,
             'my_wards_ids' => $my_wards_ids,
@@ -84,6 +86,7 @@ class UserResource extends JsonResource
                 $this->allPermissions()->toArray()
             ),
             'avatar' => '/' . $this->photo, //'https://i.pravatar.cc',
+            'photo' => '/' . $this->photo,
             'can_edit' => $can_edit,
             'whatsapp_no' => '2347044449412'
         ];
