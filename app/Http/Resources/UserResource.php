@@ -37,8 +37,12 @@ class UserResource extends JsonResource
         $school = '';
 
         $my_wards_ids = [];
+        $suspended_for_nonpayment = 0;
         if ($this->student) {
             $school  = $this->student->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
+            if ($this->student->suspended_for_nonpayment == 1) {
+                $suspended_for_nonpayment = 1;
+            }
         }
         if ($this->guardian) {
             $wards = $this->guardian->guardianStudents;
@@ -57,6 +61,9 @@ class UserResource extends JsonResource
 
                 $modules[] = $module_package->module->slug;
             }
+            if ($school->suspended_for_nonpayment == 1) {
+                $suspended_for_nonpayment = 1;
+            }
         }
         return [
             'id' => $this->id,
@@ -73,6 +80,7 @@ class UserResource extends JsonResource
             'my_wards_ids' => $my_wards_ids,
             'staff' => $this->staff,
             'school' => $school,
+            'suspended_for_nonpayment' => $suspended_for_nonpayment,
             'password_status' => $this->password_status,
             'notifications' => [],
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),
