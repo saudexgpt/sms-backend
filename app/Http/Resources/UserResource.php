@@ -40,7 +40,7 @@ class UserResource extends JsonResource
         $suspended_for_nonpayment = 0;
         if ($this->student) {
             $school  = $this->student->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
-            if ($this->student->suspended_for_nonpayment == 1) {
+            if ($this->student->studentship_status != 'active') {
                 $suspended_for_nonpayment = 1;
             }
         }
