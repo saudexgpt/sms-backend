@@ -400,8 +400,11 @@ class MessagesController extends Controller
 
 
             foreach ($copied_to_array as $user_id) :
-                $recipient = User::where('id', $user_id)->select('id', 'first_name', 'last_name', 'email', 'username')->get();
-                $copied_recipients[] = $recipient[0];
+                $recipient = User::find($user_id);
+                if ($recipient) {
+
+                    $copied_recipients[] = $recipient;
+                }
 
             endforeach;
         }
