@@ -103,38 +103,4 @@ class SessionsController extends Controller
             return redirect()->route('sessions.index');
         }
     }
-
-    /**
-     * @param $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function toggleSession($id)
-    {
-        try {
-            $session = SSession::findOrFail($id);
-
-            if ($session->is_active == 1) {
-                $session->update([
-                    'is_active' => '0'
-                ]);
-                // Active one session
-                SSession::where('is_active', '0')->where('id', '<>', $session->id)->update([
-                    'is_active' => '1'
-                ]);
-                $message = 'deactivated';
-            } else {
-                $session->update([
-                    'is_active' => '1'
-                ]);
-                // Deactivate previous active session
-                SSession::where('is_active', '1')->where('id', '<>', $session->id)->update([
-                    'is_active' => '0'
-                ]);
-                $message = 'activated';
-            }
-            return redirect()->route('sessions.index');
-        } catch (ModelNotFoundException $ex) {
-            return redirect()->route('sessions.index');
-        }
-    }
 }

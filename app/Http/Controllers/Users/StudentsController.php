@@ -109,16 +109,39 @@ class StudentsController extends Controller
             $sess_id = $request->sess_id;
         }
         // $students_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user', 'classTeachers.c_class'])->where(['sess_id' => $sess_id, 'level_id'=> $level_id, 'school_id' => $school_id])->get();
-        $level = Level::with(['classTeachers.c_class', 'studentsInClass' => function ($query) use ($school_id, $sess_id) {
-            $query->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id]);
-        }, 'studentsInClass.student.studentGuardian.guardian.user' => function ($query) {
-            $query->withTrashed();
-        }, 'studentsInClass.student.user.country.states.lgas', 'studentsInClass.student.user.state.lgas', 'studentsInClass.student.user.lga', 'studentsInClass.classTeacher.c_class'])->where('school_id',  $school_id)->find($level_id);
+        // $level = Level::with([
+        //     'classTeachers.c_class',
+        //     'studentsInClass' => function ($query) use ($school_id, $sess_id) {
+        //         $query->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id]);
+        //     },
+        //     'studentsInClass.student.studentGuardian.guardian.user' => function ($query) {
+        //         $query->withTrashed();
+        //     },
+        //     'studentsInClass.student.user.country.states.lgas', 'studentsInClass.student.user.state.lgas', 'studentsInClass.student.user.lga', 'studentsInClass.classTeacher.c_class'
+        // ])->where('school_id',  $school_id)->find($level_id);
 
-        $students_in_class = $level->studentsInClass;
+        if ($level_id === 'all') {
+            $students_in_class = StudentsInClass::with([
+                'student.studentGuardian.guardian.user' => function ($query) {
+                    $query->withTrashed();
+                },
+                'student.user.country.states.lgas', 'student.user.state.lgas', 'student.user.lga', 'classTeacher.c_class'
+            ])->where(['sess_id' => $sess_id, 'school_id' => $school_id])->get();
+        } else {
+
+            $students_in_class = StudentsInClass::with([
+                'student.studentGuardian.guardian.user' => function ($query) {
+                    $query->withTrashed();
+                },
+                'student.user.country.states.lgas', 'student.user.state.lgas', 'student.user.lga', 'classTeacher.c_class'
+            ])
+                ->join('class_teachers', 'class_teachers.id', 'students_in_classes.class_teacher_id')
+                ->where('class_teachers.level_id', $level_id)
+                ->where(['sess_id' => $sess_id, 'students_in_classes.school_id' => $school_id])->get();
+        }
 
 
-        return  $this->render(compact('students_in_class', 'levels', 'level', 'sessions', 'sess_id'));
+        return  $this->render(compact('students_in_class', 'levels', 'sessions', 'sess_id'));
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View

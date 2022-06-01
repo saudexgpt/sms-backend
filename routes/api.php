@@ -319,12 +319,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     });
     Route::group(['prefix' => 'schools'], function () {
 
-
-        Route::get('/fetch-commumity', [SchoolsController::class, 'fetchSchoolCommunity']);
         Route::get('/', [SchoolsController::class, 'index']);
+        Route::get('/fetch-commumity', [SchoolsController::class, 'fetchSchoolCommunity']);
+        Route::get('partner-schools', [SchoolsController::class, 'partnerSchools']);
+
         Route::get('/active', [SchoolsController::class, 'activeSchools']);
 
         Route::get('potential', [SchoolsController::class, 'potentialSchools']);
+        Route::get('partner-potential-schools', [SchoolsController::class, 'partnerPotentialSchools']);
         Route::get('show/{school}', [SchoolsController::class, 'show']);
         Route::post('toggle-school-non-payment-suspension', [SchoolsController::class, 'toggleSchoolNonPaymentSuspension']);
         Route::post('set-school-arms', [SchoolsController::class, 'setArm']);
@@ -361,6 +363,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('session/index', [SessionsController::class, 'index']);
         Route::post('session/store', [SessionsController::class, 'store']);
         Route::put('toggle-session-activation/{id}', [SessionsController::class, 'toggleSessionActivation']);
+        Route::get('term/index', [TermsController::class, 'index']);
+        Route::put('toggle-term-activation/{id}', [TermsController::class, 'toggleTermActivation']);
         /////////////////////////////////////////////////////////////////////////////////////////////
         Route::get('my-subject-students', [SubjectsController::class, 'mySubjectStudents']);
         Route::post('manage-subject-students', [SubjectsController::class, 'manageSubjectStudents']);

@@ -16,7 +16,8 @@ class TermsController extends Controller
      */
     public function index()
     {
-        //
+        $terms = Term::get();
+        return $this->render(compact('terms'));
     }
 
     /**
@@ -39,6 +40,20 @@ class TermsController extends Controller
         return $this->render('core::terms.activate', compact('termList', 'active_term'));
     }
 
+    public function toggleTermActivation(Request $request, $id)
+    {
+        $other_terms = Term::get();
+        foreach ($other_terms as $other_term) {
+            $other_term->is_active = '0';
+            $other_term->save();
+        }
+        $term = Term::find($id);
+
+        $term->is_active = '1';
+
+        $term->save();
+        return $this->index();
+    }
     /**
      * Method to activate term
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View

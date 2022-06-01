@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Result;
 use App\Models\CClass;
+use App\Models\ClassAttendance;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\Staff;
@@ -324,14 +325,11 @@ class ResultsController extends Controller
                     // $ca3 = $result_detail->ca3;
                     // $ca4 = $result_detail->ca4;
                     // $ca5 = $result_detail->ca5;
+                    $result_detail = $result->updateResultDetails($result_detail, $result_settings);
+                    list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
 
-
-
-                    $result_detail->test = $result->addCaScores($result_detail, $result_settings);
 
                     $student->result_detail = $result_detail;
-
-                    list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail, $result_settings);
 
                     $empty_half_record += $student_half_record;
                     $empty_full_record += $student_full_record;
@@ -463,7 +461,7 @@ class ResultsController extends Controller
                 //check whether any record exits for this subject and student if not create one
                 $student_result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                $this->saveMidTermScore($student_result_detail->mid_term, $student_result_detail, $result_settings);
+                // $this->saveMidTermScore($student_result_detail->mid_term, $student_result_detail, $result_settings);
 
                 $exam = $student_result_detail->exam;
 
@@ -531,10 +529,10 @@ class ResultsController extends Controller
 
         $student_result_detail->$label = $score;
 
-        if ($sub_term === 'half') {
+        // if ($sub_term === 'half') {
 
-            $this->saveMidTermScore($score, $student_result_detail, $result_settings);
-        }
+        //     $this->saveMidTermScore($score, $student_result_detail, $result_settings);
+        // }
         //$result_detail->save();
 
         // $mid_term = $student_result_detail->mid_term / 10; // we convert mid_term from 100 to over 10
@@ -578,7 +576,7 @@ class ResultsController extends Controller
 
 
 
-                    $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+                    $result_detail = $result->updateResultDetails($result_detail, $result_settings);
 
                     $student->result_detail = $result_detail;
 
@@ -892,7 +890,7 @@ class ResultsController extends Controller
             }
 
 
-            return $this->render(compact('students_in_class', 'result_details', 'result_subjects', 'result_averages', 'sub_term', 'class_teacher_id', 'term_id', 'sess_id', 'can_give_principal_remark', 'can_give_teacher_remark'));
+            return $this->render(compact('students_in_class', 'result_details', 'result_subjects', 'result_averages', 'sub_term', 'class_teacher_id', 'term_id', 'sess_id', 'can_give_principal_remark', 'can_give_teacher_remark', 'class_name'));
         }
 
 
@@ -1028,6 +1026,10 @@ class ResultsController extends Controller
                 list($student_average_result_grade, $student_average_color, $student_average_grade_point) = $result->resultGrade($student_average, $grades);
                 $student_average_color = $student_average_color;
             }
+            $class_attendance_obj = new ClassAttendance();
+            $class_attendance_score = $class_attendance_obj->studentClassAttendanceScore($student_id, $school_id, $class_teacher_id, $sess_id, $term_id);
+
+            $student_in_class->class_attendance = sprintf("%01.1f", $class_attendance_score);
             //return  $student_results;
             //fetch behavoral and skill ratings for this student
             $student_details = $student_in_class->student;
@@ -1081,6 +1083,17 @@ class ResultsController extends Controller
         $curriculum_level_group_id = $class_details->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
+
+
+        $options = [
+            'class_teacher_id' => $class_teacher_id,
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+            'term' => $term_id,
+            'sub_term' => $sub_term,
+            'grades' => $grades,
+            'result_settings' => $result_settings,
+        ];
         $cant_approve = 0;
         if ($subject_teachers->isNotEmpty()) {
             $class_event = 0;
@@ -1147,6 +1160,8 @@ class ResultsController extends Controller
                             $reg_no = $student->registration_no;
                             //check whether any record exits for this subject and student if not create one
                             $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
+
+                            $result_detail = $result->updateResultDetails($result_detail, $result_settings);
 
                             // $mid_term = $result_detail->mid_term / 10;
                             // $ca1 = $result_detail->ca1;

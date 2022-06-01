@@ -29,23 +29,27 @@ class SchoolsController extends Controller
     public function index()
     {
         $user = $this->getUser();
-        if ($user->isSuperAdmin()) {
+        $schools = [];
+        if ($user->isSuperAdmin() || $user->hasPermission('can view all schools')) {
 
             $schools = School::with('package.packageModules.module')->get();
-        } else {
-            $schools = [];
-            $partner_schools = $user->partnerSchools()->with('school.package.packageModules.module')->get();
-            if ($partner_schools->isNotEmpty()) {
-
-                foreach ($partner_schools as $partner_school) {
-                    $schools[] = $partner_school->school;
-                }
-            }
         }
         // $group_of_schools = GroupOfSchool::orderBy('name')->get();
         return response()->json(compact('schools'));
     }
+    public function partnerSchools()
+    {
+        $user = $this->getUser();
+        $schools = [];
+        $partner_schools = $user->partnerSchools()->with('school.package.packageModules.module')->get();
+        if ($partner_schools->isNotEmpty()) {
 
+            foreach ($partner_schools as $partner_school) {
+                $schools[] = $partner_school->school;
+            }
+        }
+        return response()->json(compact('schools'));
+    }
     public function activeSchools()
     {
         $schools = School::where('is_active', '1')->get();
@@ -272,18 +276,26 @@ class SchoolsController extends Controller
 
         return response()->json(compact('registered_school'), 200);
     }
-
     public function potentialSchools()
     {
 
         //return "These are potential schools we have";
 
         $user = $this->getUser();
-        if ($user->isSuperAdmin()) {
+        $potential_schools = [];
+        if ($user->isSuperAdmin() || $user->hasPermission('can view all schools')) {
             $potential_schools = PotentialSchool::where('is_active', '0')->orderBy('created_at', 'DESC')->get();
-        } else {
-            $potential_schools = $user->potentialSchools()->where('is_active', '0')->orderBy('created_at', 'DESC')->get();
         }
+
+        return response()->json(compact('potential_schools'));
+    }
+    public function partnerPotentialSchools()
+    {
+
+        //return "These are potential schools we have";
+
+        $user = $this->getUser();
+        $potential_schools = $user->potentialSchools()->where('is_active', '0')->orderBy('created_at', 'DESC')->get();
 
         return response()->json(compact('potential_schools'));
     }

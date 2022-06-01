@@ -144,4 +144,38 @@ class ClassAttendance extends Model
 
         return array($marked_month_attendances, $marked_today, $marked_student_array, $attendance_id);
     }
+
+    public function getClassAttendance($school_id, $class_teacher_id, $sess_id, $term_id)
+    {
+        $attendances = ClassAttendance::where([
+            'school_id' => $school_id,
+            'class_teacher_id' => $class_teacher_id,
+            'sess_id' => $sess_id,
+            'term_id' => $term_id
+        ])->get();
+
+        return $attendances;
+    }
+    public function studentClassAttendanceScore($student_id, $school_id, $class_teacher_id, $sess_id, $term_id)
+    {
+        $class_attendances = $this->getClassAttendance($school_id, $class_teacher_id, $sess_id, $term_id);
+        $no_of_attendance_taken = $class_attendances->count();
+
+        $no_of_times_present = 0;
+        $attendance_score = 0;
+        if ($no_of_attendance_taken > 0) {
+
+            foreach ($class_attendances as $class_attendance) {
+                $student_ids_array = explode('~', $class_attendance->student_ids);
+
+                if (in_array($student_id, $student_ids_array)) {
+                    $no_of_times_present++;
+                }
+            }
+
+            $attendance_score = $no_of_times_present / $no_of_attendance_taken * 100;
+        }
+
+        return $attendance_score;
+    }
 }

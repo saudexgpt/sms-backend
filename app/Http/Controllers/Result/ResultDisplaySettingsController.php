@@ -44,6 +44,11 @@ class ResultDisplaySettingsController extends Controller
         $result_setting->ca5 = ($request->ca5 !== 'null') ? $request->ca5 : NULL;
         $result_setting->exam = $exam;
         $result_setting->no_of_ca_for_midterm = $request->no_of_ca_for_midterm;
+        $result_setting->add_midterm_score_to_full_result = $request->add_midterm_score_to_full_result;
+        $result_setting->midterm_score_limit = $request->midterm_score_limit;
+        $result_setting->add_attendance_to_ca = $request->add_attendance_to_ca;
+        $result_setting->attendance_score_limit = $request->attendance_score_limit;
+
         $result_setting->display_exam_score_only_for_full_term = $display_exam_score_only_for_full_term;
         $result_setting->display_student_position = $request->display_student_position;
         $result_setting->display_student_subject_position = $request->display_student_subject_position;

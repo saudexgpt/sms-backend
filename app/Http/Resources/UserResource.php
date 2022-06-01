@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\SSession;
+use App\Models\Term;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,14 +49,28 @@ class UserResource extends JsonResource
         if ($this->guardian) {
             $wards = $this->guardian->guardianStudents;
             $school  = $this->guardian->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
+            $active = 0;
             foreach ($wards as $ward) {
+                $student = $ward->student;
+                if ($student->studentship_status === 'active') {
+                    $active++;
+                }
                 $my_wards_ids[] = $ward->student_id;
+            }
+
+            if ($active == 0) {
+                $suspended_for_nonpayment = 1;
             }
         }
         if ($this->staff) {
             $school  = $this->staff->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
         }
         $modules = [];
+        $dir_size = 0;
+        $percentage_used_space = 0;
+        $used_space = '0 Byte';
+        $system_set_session = SSession::where('is_active', '1')->orderBy('id', 'DESC')->first();
+        $system_set_term = Term::where('is_active', '1')->first();
         if ($school != '') {
             $module_packages = $school->package->packageModules;
             foreach ($module_packages as $module_package) {
@@ -64,6 +80,10 @@ class UserResource extends JsonResource
             if ($school->suspended_for_nonpayment == 1) {
                 $suspended_for_nonpayment = 1;
             }
+            $dir_size_in_byte = folderSize('storage/schools/' . $school->folder_key . '/');
+            $dir_size = byteToGB($dir_size_in_byte);
+            $percentage_used_space = percentageDirUsage($dir_size, $school->disk_space);
+            $used_space = folderSizeFilter($dir_size_in_byte);
         }
         return [
             'id' => $this->id,
@@ -80,9 +100,14 @@ class UserResource extends JsonResource
             'my_wards_ids' => $my_wards_ids,
             'staff' => $this->staff,
             'school' => $school,
+            'system_set_session' => $system_set_session,
+            'system_set_term' => $system_set_term,
             'suspended_for_nonpayment' => $suspended_for_nonpayment,
             'password_status' => $this->password_status,
             'notifications' => [],
+            'dir_size' => $dir_size,
+            'percentage_used_space' => $percentage_used_space,
+            'used_space' => $used_space,
             // 'activity_logs' => $this->notifications()->orderBy('created_at', 'DESC')->get(),
             'roles' => $rights,
             'modules' => $modules,

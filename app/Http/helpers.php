@@ -708,7 +708,11 @@ function toDate()
 {
     return date('Y-m-d' . ' 16:00:00', time());
 }
-
+function convertPercentToUnitScore($factor, $numerator, $denominator = 100)
+{
+    $converted_score = $numerator / $denominator * $factor;
+    return sprintf("%01.1f", $converted_score);
+}
 function deleteSingleElementFromString($parent_string, $child_string)
 {
     $string_array = explode('~', $parent_string);
@@ -1053,4 +1057,40 @@ function subdomainPublicPath($folder = null)
 function portalPulicPath($folder = null)
 {
     return "/home/schoolpoint/public_html/api/storage/" . $folder;
+}
+
+function folderSize($dir)
+{
+    $size = 0;
+
+    foreach (glob(rtrim($dir, '/') . '/*', GLOB_NOSORT) as $each) {
+        $size += is_file($each) ? filesize($each) : folderSize($each);
+    }
+
+    // this size is in Byte
+    // we want to convert it to GB
+    // 1Gb = 1024 ^ 3 Bytes OR 1Gb = 2 ^ 30
+
+    return $size;
+    // return sizeFilter($size); //byteToGB($size);
+}
+
+function byteToGB($byte)
+{
+    $gb =  $byte / 1024 / 1024 / 1024;
+    return $gb;
+}
+
+function percentageDirUsage($dir_size, $total_usable)
+{
+    $used =  $dir_size / $total_usable * 100;
+    return (float) sprintf('%01.2f', $used);
+}
+function folderSizeFilter($bytes)
+{
+    $label = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+
+    for ($i = 0; $bytes >= 1024 && $i < (count($label) - 1); $bytes /= 1024, $i++);
+
+    return (round($bytes, 2) . $label[$i]);
 }
