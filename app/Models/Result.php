@@ -461,7 +461,7 @@ class Result extends Model
                 'term_id' => $term_id,
                 'result_status' => 'Applicable'
             ]
-        )->where('total', '!=', NULL)->select('student_id', \DB::raw('AVG(total) as average'))->get();
+        )->whereRaw('total IS NOT NULL')->select('student_id', \DB::raw('AVG(total) as average'))->get();
         return $student_result_average;
     }
 
