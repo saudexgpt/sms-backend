@@ -999,35 +999,24 @@ class ResultsController extends Controller
 
         $no_in_class = $students_in_class->count();
 
-        $result_averages = [];
-        $student_average = 0;
-        $class_average = 0;
-        $total_subject_class_average = 0;
-        $position = "";
-        $class_average_color = '';
-
-        //keep the averages for each student in an array to eable ranking
-        // foreach ($students_in_class as $class_student) {
-        //     $analyzed_result = $result->analyseStudentsResult($class_student->student, $options);
-        //     $result_averages[$class_student->student_id] = $analyzed_result->average; //keep the averages for each student in an array to eable ranking
-        // }
-        $student_result_averages = $result->fetchClassStudentResultAverage($options);
-        $result_count = count($student_result_averages);
-        foreach ($student_result_averages as $student_result_average) {
-            $stud_id = $student_result_average->student_id;
-            $result_averages[$stud_id] = $student_result_average->average; //keep the averages for each student in an array to eable ranking
-            $total_subject_class_average += $student_result_average->average;
-            if ($stud_id === $student_id) {
-                $student_average = $student_result_average->average;
-            }
+        $result_averages = []; //keep the averages for each student in an array to eable ranking
+        foreach ($students_in_class as $class_student) {
+            $analyzed_result = $result->analyseStudentsResult($class_student->student, $options);
+            $result_averages[] = $analyzed_result->average; //keep the averages for each student in an array to eable ranking
         }
+
         if (!$student_results->isEmpty()) {
 
-            list($student_results, $subject_class_average, $student_score, $count) = $result->processStudentResults($student_results, $options);
+            list($student_results, $total_subject_class_average, $total_student_score, $result_count) = $result->processStudentResults($student_results, $options);
 
-            if ($result_count > 0) {
+            if ($result_count == 0) {
+                $class_average = 0;
+                $student_average = 0;
+                $position = "";
+                $class_average_color = '';
+            } else {
                 $class_average = sprintf("%01.1f", $total_subject_class_average / $result_count);
-                // $student_average = sprintf("%01.1f", $total_student_score / $result_count);
+                $student_average = sprintf("%01.1f", $total_student_score / $result_count);
                 $position = rankResult($student_average, $result_averages);
 
                 list($class_average_result_grade, $class_average_color, $class_average_grade_point) = $result->resultGrade($class_average, $grades);
