@@ -447,6 +447,23 @@ class Result extends Model
         endforeach;
         return array($student_results, $total_subject_class_average, $total_student_score, $result_count);
     }
+    public function fetchClassStudentResultAverage($options)
+    {
+        $class_teacher_id = $options['class_teacher_id'];
+        $school_id = $options['school_id'];
+        $sess_id = $options['sess_id'];
+        $term_id = $options['term'];
+        $student_result_average = Result::groupBy('student_id')->where(
+            [
+                'class_teacher_id' => $class_teacher_id,
+                'school_id' => $school_id,
+                'sess_id' => $sess_id,
+                'term_id' => $term_id,
+                'result_status' => 'Applicable'
+            ]
+        )->where('total', '!=', NULL)->select('student_id', \DB::raw('AVG(total) as average'))->get();
+        return $student_result_average;
+    }
 
     public function analyseStudentsResult($student, $options)
     {
