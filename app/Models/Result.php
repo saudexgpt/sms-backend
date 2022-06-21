@@ -379,6 +379,7 @@ class Result extends Model
 
     public function processStudentResults($student_results, $options)
     {
+        $class_result_averages = [];
         $total_subject_class_average = 0;
         $total_student_score = 0;
         $result_count = 0;

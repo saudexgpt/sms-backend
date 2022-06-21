@@ -1002,9 +1002,8 @@ class ResultsController extends Controller
         $result_averages = []; //keep the averages for each student in an array to eable ranking
         foreach ($students_in_class as $class_student) {
             $analyzed_result = $result->analyseStudentsResult($class_student->student, $options);
-            $result_averages[] = $analyzed_result->average; //keep the averages for each student in an array to eable ranking
+            $result_averages[] = (float) $analyzed_result->average; //keep the averages for each student in an array to eable ranking
         }
-        return $result_averages;
         if (!$student_results->isEmpty()) {
 
             list($student_results, $total_subject_class_average, $total_student_score, $result_count) = $result->processStudentResults($student_results, $options);
