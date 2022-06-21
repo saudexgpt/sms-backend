@@ -479,33 +479,43 @@ class Result extends Model
         $sub_term = $options['sub_term'];
         $result_settings = $options['result_settings'];
 
-        $class_subjects = SubjectTeacher::with('subject')->where([
-            'class_teacher_id' => $class_teacher_id,
-            'school_id' => $school_id
-        ])->where('teacher_id', '!=', NULL)->orderBy('id')->get();
-
+        // $class_subjects = SubjectTeacher::with('subject')->where([
+        //     'class_teacher_id' => $class_teacher_id,
+        //     'school_id' => $school_id
+        // ])/*->where('teacher_id', '!=', NULL)*/->orderBy('id')->get();
+        $student_results = Result::with('subjectTeacher.subject')->where(
+            [
+                'class_teacher_id' => $class_teacher_id,
+                'school_id' => $school_id,
+                'sess_id' => $sess_id,
+                'term_id' => $term_id,
+                'student_id' => $student_id,
+                'result_status' => 'Applicable'
+            ]
+        )->get();
         $result_details_array = [];
-        if ($class_subjects->isNotEmpty()) {
+        if ($student_results->isNotEmpty()) {
 
             $total_score = 0;
 
             $count = 0;
             $result_details = [];
-            foreach ($class_subjects as $subject_teacher) :
+            foreach ($student_results as $student_result) :
 
                 $total = null;
                 $color = '';
                 $grade_point = null;
-                $student_result = Result::with('subjectTeacher.subject')->where(
-                    [
-                        'subject_teacher_id' => $subject_teacher->id,
-                        'school_id' => $school_id,
-                        'sess_id' => $sess_id,
-                        'term_id' => $term_id,
-                        'student_id' => $student_id,
-                        'result_status' => 'Applicable'
-                    ]
-                )->first();
+                $subject_teacher = $student_result->subjectTeacher;
+                // $student_result = Result::with('subjectTeacher.subject')->where(
+                //     [
+                //         'subject_teacher_id' => $subject_teacher->id,
+                //         'school_id' => $school_id,
+                //         'sess_id' => $sess_id,
+                //         'term_id' => $term_id,
+                //         'student_id' => $student_id,
+                //         'result_status' => 'Applicable'
+                //     ]
+                // )->first();
 
                 $sub_id = $subject_teacher->id;
                 $subject_name = $subject_teacher->subject->code;
