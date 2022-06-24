@@ -125,7 +125,7 @@ class CurriculaController extends Controller
         $curricula = $curriculum->teacherCurricula($curricula);
         return $this->render('material::curricula.curricula', compact('curricula'));
     }
-    public function subjectMaterials(SubjectTeacher $subject_teacher)
+    public function subjectCurriculum(SubjectTeacher $subject_teacher)
     {
         $school_id = $this->getSchool()->id;
         $term_id = $this->getTerm()->id;
