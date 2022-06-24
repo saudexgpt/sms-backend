@@ -216,9 +216,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('/teacher-curriculum', [CurriculaController::class, 'teacherCurriculum']);
         Route::post('/save-curriculum', [CurriculaController::class, 'store']);
 
+        Route::get('/subject-curriculum/{subject_teacher}', [CurriculaController::class, 'subjectCurriculum']);
         Route::get('/teacher/subject-materials', [MaterialsController::class, 'teacherSubjectMaterials']);
         Route::post('/store', [MaterialsController::class, 'store']);
         Route::get('/subject-materials/{subject_teacher}', [MaterialsController::class, 'subjectMaterials']);
+
+
         Route::delete('/delete/{id}', [MaterialsController::class, 'destroy']);
     });
     Route::group(['prefix' => 'lms'], function () {
