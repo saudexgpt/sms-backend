@@ -130,6 +130,11 @@ class CurriculaController extends Controller
         $school_id = $this->getSchool()->id;
         $term_id = $this->getTerm()->id;
         $curriculum = Curriculum::where(['school_id' => $school_id, 'term_id' => $term_id, 'subject_teacher_id' => $subject_teacher->id])->first();
+        if (!$curriculum) {
+            $curriculum = new Curriculum();
+            $curriculum->description = null;
+            $curriculum->curriculum = null;
+        }
         return response()->json(compact('curriculum'), 200);
     }
 }
