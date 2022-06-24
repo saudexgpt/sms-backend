@@ -126,7 +126,7 @@ class StudentsController extends Controller
                 'student.studentGuardian.guardian.user' => function ($query) {
                     $query->withTrashed();
                 },
-                'student.user.country.states.lgas', 'student.user.state.lgas', 'student.user.lga', 'classTeacher.c_class'
+                'student.user.country', 'student.user.state', 'student.user.lga', 'classTeacher.c_class'
             ])->where(['sess_id' => $sess_id, 'school_id' => $school_id])->get();
         } else {
 
@@ -134,7 +134,7 @@ class StudentsController extends Controller
                 'student.studentGuardian.guardian.user' => function ($query) {
                     $query->withTrashed();
                 },
-                'student.user.country.states.lgas', 'student.user.state.lgas', 'student.user.lga', 'classTeacher.c_class'
+                'student.user.country', 'student.user.state', 'student.user.lga', 'classTeacher.c_class'
             ])
                 ->join('class_teachers', 'class_teachers.id', 'students_in_classes.class_teacher_id')
                 ->where('class_teachers.level_id', $level_id)
