@@ -132,7 +132,7 @@ class CurriculaController extends Controller
         $curriculum = Curriculum::where(['school_id' => $school_id, 'term_id' => $term_id, 'subject_teacher_id' => $subject_teacher->id])->first();
         if (!$curriculum) {
             $curriculum = new Curriculum();
-            $curriculum->description = null;
+            $curriculum->description = 'No Curriculum was set for this subject. Kindly inform your subject teacher';
             $curriculum->curriculum = null;
         }
         return response()->json(compact('curriculum'), 200);
