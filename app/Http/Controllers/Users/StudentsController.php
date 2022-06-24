@@ -95,6 +95,7 @@ class StudentsController extends Controller
     }
     public function allStudentsTable(Request $request)
     {
+        set_time_limit(0);
         $school = $this->getSchool();
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
