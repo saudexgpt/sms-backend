@@ -143,37 +143,50 @@ class Result extends Model
         $total_ca_score = 0;
         $no_of_ca = $result_settings->no_of_ca;
         $display_exam_score_only_for_full_term = $result_settings->display_exam_score_only_for_full_term;
+        $mid_term = 0;
+        $attendance_score = 0;
         // if ($result_settings->display_exam_score_only_for_full_term === 'no') {
         // we want to make sure that previous inputed results before the major upgrade
         // remain the same so that there would be no descrepancies.
         // The major upgrade will affect result that will be with date from year 2022 and upwards
-        $mid_term = 0;
-        $attendance_score = 0;
-        // $result_date = (int) date('Y', strtotime($result_detail->updated_at));
-        // if ($result_date < 2022) {
-        //     $mid_term = $result_detail->mid_term / 10;
-        // }
-        if ($result_settings->add_midterm_score_to_full_result == 'yes') {
 
-            $mid_term_score = $result_detail->mid_term1 + $result_detail->mid_term2;
-            $midterm_score_limit = $result_settings->midterm_score_limit;
-            $mid_term = convertPercentToUnitScore($mid_term_score, $midterm_score_limit);
-        }
+        $result_date = (int) date('Y', strtotime($result_detail->updated_at));
+        if ($result_date < 2022) {
 
-        if ($result_settings->add_attendance_to_ca == 'yes') {
-
-            $attendance_score = $sub_attendance_obj->studentSubjectAttendanceScore($student_id, $school_id, $subject_teacher_id, $sess_id, $term_id, $attendance_score_limit);
-        }
-        // we want to make sure ca tests are calculated along exam only when $display_exam_score_only_for_full_term is 'no'
-        if ($display_exam_score_only_for_full_term  === 'no') {
-
-            for ($i = 1; $i <= $no_of_ca; $i++) {
-                $assessment = 'ca' . $i;
-                $score = $result_detail->$assessment;
-                $total_ca_score += ($score) ? $score : 0;
+            $ca1 = $result_detail->ca1;
+            $ca2 = $result_detail->ca2;
+            $ca3 = $result_detail->ca3;
+            if ($result_settings->add_midterm_score_to_full_result == 'yes') {
+                $mid_term = $result_detail->mid_term1 / 10;
+                $total_ca_score = $this->addScores($mid_term, $ca1, $ca2, $ca3);
+            } else {
+                $total_ca_score = $this->addScores($ca1, $ca2, $ca3);
             }
-            $total_ca_score += $mid_term;
-            $total_ca_score += $attendance_score;
+        } else {
+
+            if ($result_settings->add_midterm_score_to_full_result == 'yes') {
+
+                $mid_term_score = $result_detail->mid_term1 + $result_detail->mid_term2;
+                $midterm_score_limit = $result_settings->midterm_score_limit;
+                $mid_term = convertPercentToUnitScore($mid_term_score, $midterm_score_limit);
+            }
+
+            if ($result_settings->add_attendance_to_ca == 'yes') {
+
+                $attendance_score = $sub_attendance_obj->studentSubjectAttendanceScore($student_id, $school_id, $subject_teacher_id, $sess_id, $term_id, $attendance_score_limit);
+            }
+
+            // we want to make sure ca tests are calculated along exam only when $display_exam_score_only_for_full_term is 'no'
+            if ($display_exam_score_only_for_full_term  === 'no') {
+
+                for ($i = 1; $i <= $no_of_ca; $i++) {
+                    $assessment = 'ca' . $i;
+                    $score = $result_detail->$assessment;
+                    $total_ca_score += ($score) ? $score : 0;
+                }
+                $total_ca_score += $mid_term;
+                $total_ca_score += $attendance_score;
+            }
         }
         // }
         return $total_ca_score;
