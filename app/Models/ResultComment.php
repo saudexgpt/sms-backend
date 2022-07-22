@@ -48,8 +48,8 @@ class ResultComment
     {
         return [
             new ResultComment(80, 100, [
-                "Excellent performance by %s", "%s had an outstanding result",
-                "%s had an excellent result", "%s's performance is exceptional",
+                "Excellent performance by %s", "Outstanding performance by %s",
+                "Exceptional performance by %s", "%s's performance is exceptional",
             ]),
 
             new ResultComment(60, 79.999, [
@@ -57,7 +57,7 @@ class ResultComment
                 "A remarkable performance by %s",
             ]),
 
-            new ResultComment(50, 59.999, ["%s result is a satisfactory", "%s has an average result", "%s did satisfactorily well", "%s did averagely well"]),
+            new ResultComment(50, 59.999, ["Satisfactory performance by %s", "%s has an average result", "%s did satisfactorily well", "%s did averagely well"]),
 
             new ResultComment(40, 49.999, ["%s has a fair result",  "%s did below average"]),
 
@@ -96,14 +96,16 @@ class ResultComment
                     $comment = $comment . $head_teacher_comment->getRandomSingleComment($name);
                 }
             }
-            return $comment;
         }
-        foreach ($generals as $general) {
-            if ($general->isInRange($average)) {
-                $comment = $comment . $general->getRandomSingleComment($name);
+        if ($commentator == 'class_teacher') {
+            foreach ($generals as $general) {
+                if ($general->isInRange($average)) {
+                    $comment = $comment . $general->getRandomSingleComment($name);
+                }
             }
-            return $comment;
         }
+
+        return $comment;
 
         //        $comment = $comment . ( $generals[ count( $generals) - 1 ]->isInRange( $average ) ? " and " : " but " );
 
