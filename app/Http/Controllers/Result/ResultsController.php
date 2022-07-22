@@ -1397,18 +1397,18 @@ class ResultsController extends Controller
                 if (!$student_remark) {
 
                     $student_remark = new Remark();
-                    $student_remark->school_id = $school_id;
-                    $student_remark->class_teacher_id = $class_teacher_id;
-                    $student_remark->sess_id = $sess_id;
-                    $student_remark->term_id = $term_id;
-                    $student_remark->sub_term = $sub_term;
-                    $student_remark->student_id = $student_id;
-                    $student_remark->teacher_id = $students_in_class->classTeacher->teacher_id;
-                    //this does the auto remark for each student
-                    $student_remark->class_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'class_teacher');
-                    $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'head_teacher');
-                    $student_remark->save();
                 }
+                $student_remark->school_id = $school_id;
+                $student_remark->class_teacher_id = $class_teacher_id;
+                $student_remark->sess_id = $sess_id;
+                $student_remark->term_id = $term_id;
+                $student_remark->sub_term = $sub_term;
+                $student_remark->student_id = $student_id;
+                $student_remark->teacher_id = $students_in_class->classTeacher->teacher_id;
+                //this does the auto remark for each student
+                $student_remark->class_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'class_teacher');
+                $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'head_teacher');
+                $student_remark->save();
                 $head_teacher_remarks[$student_id] = $student_remark->head_teacher_remark;
                 $class_teacher_remarks[$student_id] = $student_remark->class_teacher_remark;
             endforeach;
