@@ -102,32 +102,30 @@ class ResultComment
             if ($general->isInRange($average)) {
                 $comment = $comment . $general->getRandomSingleComment($name);
             }
+            return $comment;
         }
 
         //        $comment = $comment . ( $generals[ count( $generals) - 1 ]->isInRange( $average ) ? " and " : " but " );
 
-        for ($i = 0; $i < count($complements); ++$i) {
-            $commentGrade = array();
-            foreach ($grades as $grade) {
-                if ($grade > 0) {
+        // for ($i = 0; $i < count($complements); ++$i) {
+        //     $commentGrade = array();
+        //     foreach ($grades as $grade) {
+        //         if ($complements[$i]->isInRange($grade["grade"])) {
+        //             array_push($commentGrade, $grade);
+        //         }
+        //     }
 
-                    if ($complements[$i]->isInRange($grade["grade"])) {
-                        array_push($commentGrade, $grade);
-                    }
-                }
-            }
+        //     if (count($commentGrade) != 0) {
 
-            if (count($commentGrade) != 0) {
+        //         if ($i == 0) {
+        //             $comment = $comment . ($generals[count($generals) - 1]->isInRange($average) ? " and " : " but ");
+        //             $comment = $comment . $complements[$i]->getRandomSingleComments($commentGrade);
+        //         } else
+        //             $comment = $comment . " and " . $complements[$i]->getRandomSingleComments($commentGrade);
+        //     }
+        // }
 
-                if ($i == 0) {
-                    $comment = $comment . ($generals[count($generals) - 1]->isInRange($average) ? " and " : " but ");
-                    $comment = $comment . $complements[$i]->getRandomSingleComments($commentGrade);
-                } else
-                    $comment = $comment . " and " . $complements[$i]->getRandomSingleComments($commentGrade);
-            }
-        }
-
-        return $comment;
+        // return $comment;
     }
 
     public static function getComplementaryComment($subjects)
