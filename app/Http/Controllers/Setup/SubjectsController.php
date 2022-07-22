@@ -7,17 +7,21 @@ use App\Http\Requests\SubjectRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Assignment;
 use App\Models\CClass;
 use App\Models\ClassTeacher;
 use App\Models\Curriculum;
 use App\Models\CurriculumLevelGroup;
 use App\Models\Level;
 use App\Models\Material;
+use App\Models\Result;
+use App\Models\ResultAction;
 use App\Models\Staff;
 use App\Models\StaffRole;
 use App\Models\StudentsInClass;
 use App\Models\StudentsOfferingSubject;
 use App\Models\Subject;
+use App\Models\SubjectAttendance;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 
@@ -362,5 +366,31 @@ class SubjectsController extends Controller
             $subject_teachers = $student_in_class->classTeacher->subjectTeachers;
         }
         return $this->render(compact('subject_teachers'));
+    }
+
+    public function destroy(Request $request, Subject $subject)
+    {
+        $school_id = $this->getSchool()->id;
+        $curriculum_level_group_id = $subject->curriculum_level_group_id;
+        $subject_teachers = SubjectTeacher::where(['school_id' => $school_id, 'subject_id' => $subject->id])->pluck('id');
+        // delete results with this subject
+        Result::where('school_id', $school_id)->whereIn('subject_teacher_id', $subject_teachers)->delete();
+        ResultAction::where('school_id', $school_id)->whereIn('subject_teacher_id', $subject_teachers)->delete();
+        Assignment::where('school_id', $school_id)->whereIn('subject_teacher_id', $subject_teachers)->delete();
+
+        SubjectAttendance::where('school_id', $school_id)->whereIn('subject_teacher_id', $subject_teachers)->delete();
+
+        StudentsOfferingSubject::where('school_id', $school_id)->whereIn('subject_teacher_id', $subject_teachers)->delete();
+
+        // foreach ($results as $result) {
+        //     $result->delete();
+        // }
+        // delete subject assigned to this
+        SubjectTeacher::where(['school_id' => $school_id, 'subject_id' => $subject->id])->delete();
+        $subject->delete();
+
+        $subjects = Subject::where(['school_id' => $school_id, 'curriculum_level_group_id' => $curriculum_level_group_id])->orderBy('id', 'DESC')->get();
+
+        return response()->json(compact('subjects'), 200);
     }
 }

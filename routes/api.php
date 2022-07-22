@@ -356,6 +356,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         Route::resource('sections', SectionsController::class);
         Route::resource('subjects', SubjectsController::class);
+        Route::delete('subject/destroy/{subject}', [SubjectsController::class, 'destroy']);
         Route::get('fetch-teacher-subject', [SubjectsController::class, 'fetchTeacherSubject']);
         Route::put('assign-subject/{subject_teacher}', [SubjectsController::class, 'assignSubject']);
 
