@@ -859,21 +859,28 @@ class ResultsController extends Controller
                 if (!$student_remark) {
 
                     $student_remark = new Remark();
+                    $student_remark->school_id = $school_id;
+                    $student_remark->class_teacher_id = $class_teacher_id;
+                    $student_remark->sess_id = $sess_id;
+                    $student_remark->term_id = $term_id;
+                    $student_remark->sub_term = $sub_term;
+                    $student_remark->student_id = $student->id;
+                    $student_remark->teacher_id = $student_in_class->classTeacher->teacher_id;
+                    $student_remark->class_teacher_status == 'default';
+                    $student_remark->head_teacher_status == 'default';
                 }
 
                 $student_name = ucwords(strtolower($student->user->first_name . ' ' . $student->user->last_name));
+                if ($student_remark->class_teacher_status == 'default') {
+                    $student_remark->class_teacher_remark = ResultComment::getComment($student_name,    $student_result->result_details_array, $student_result->average, 'class_teacher');
+                }
 
-                $student_remark->school_id = $school_id;
-                $student_remark->class_teacher_id = $class_teacher_id;
-                $student_remark->sess_id = $sess_id;
-                $student_remark->term_id = $term_id;
-                $student_remark->sub_term = $sub_term;
-                $student_remark->student_id = $student->id;
-                $student_remark->teacher_id = $student_in_class->classTeacher->teacher_id;
+                if ($student_remark->head_teacher_status == 'default') {
+                    $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $student_result->result_details_array, $student_result->average, 'head_teacher');
+                }
+
                 //this does the auto remark for each student
-                $student_remark->class_teacher_remark = ResultComment::getComment($student_name,    $student_result->result_details_array, $student_result->average, 'class_teacher');
 
-                $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $student_result->result_details_array, $student_result->average, 'head_teacher');
                 $student_remark->save();
 
                 $can_give_principal_remark = false;
@@ -1400,18 +1407,19 @@ class ResultsController extends Controller
                 if (!$student_remark) {
 
                     $student_remark = new Remark();
+                    $student_remark->school_id = $school_id;
+                    $student_remark->class_teacher_id = $class_teacher_id;
+                    $student_remark->sess_id = $sess_id;
+                    $student_remark->term_id = $term_id;
+                    $student_remark->sub_term = $sub_term;
+                    $student_remark->student_id = $student_id;
+                    $student_remark->teacher_id = $students_in_class->classTeacher->teacher_id;
+                    //this does the auto remark for each student
+                    $student_remark->class_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'class_teacher');
+                    $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'head_teacher');
+                    $student_remark->save();
                 }
-                $student_remark->school_id = $school_id;
-                $student_remark->class_teacher_id = $class_teacher_id;
-                $student_remark->sess_id = $sess_id;
-                $student_remark->term_id = $term_id;
-                $student_remark->sub_term = $sub_term;
-                $student_remark->student_id = $student_id;
-                $student_remark->teacher_id = $students_in_class->classTeacher->teacher_id;
-                //this does the auto remark for each student
-                $student_remark->class_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'class_teacher');
-                $student_remark->head_teacher_remark = ResultComment::getComment($student_name, $result_details_array, $student_average, 'head_teacher');
-                $student_remark->save();
+
                 $head_teacher_remarks[$student_id] = $student_remark->head_teacher_remark;
                 $class_teacher_remarks[$student_id] = $student_remark->class_teacher_remark;
             endforeach;
@@ -1453,8 +1461,10 @@ class ResultsController extends Controller
 
         if ($remark_by == 'class_teacher') {
             $student_remark->class_teacher_remark = $remark;
+            $student_remark->class_teacher_status = 'custom';
         } else {
             $student_remark->head_teacher_remark = $remark;
+            $student_remark->head_teacher_status = 'custom';
         }
         $student_remark->save();
     }
