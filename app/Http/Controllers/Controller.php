@@ -421,7 +421,14 @@ class Controller extends BaseController
         //$this->this_session = $session;
         $school = $this->getSchool();
         if ($school) {
-            $session = SSession::find($school->current_session);
+            if ($school->current_session != NULL) {
+
+                $session = SSession::find($school->current_session);
+            } else {
+                $session = SSession::orderBy('id', 'DESC')->first();
+                $school->current_session = $session->id;
+                $school->save();
+            }
 
             $this->this_session = $session;
         }
