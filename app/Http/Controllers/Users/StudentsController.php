@@ -147,11 +147,19 @@ class StudentsController extends Controller
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function fetchAlumni()
+    public function fetchAlumni(Request $request)
     {
+        $school = $this->getSchool();
         $school_id = $this->getSchool()->id;
-        $alumni = Alumni::with('student.user')->where('school_id', $school_id)->orderBy('graduate_session', 'DESC')->paginate(10);
-        return $this->render('core::students.alumni', compact('alumni'));
+        $sessions = SSession::where('id', '<=', $school->current_session)->orderBy('id', 'DESC')->get();
+        $sess_id = $request->sess_id;
+        $alumni = [];
+        if ($sess_id !== '') {
+
+            $alumni = Alumni::with('student.user', 'graduateSession')->where(['school_id' => $school_id, 'graduate_session' => $sess_id])->orderBy('graduate_session', 'DESC')->get();
+        }
+
+        return response()->json(compact('alumni', 'sessions'), 200);
     }
 
     public function promoteStudentForm()
@@ -571,7 +579,14 @@ class StudentsController extends Controller
         return $this->render('core::students.subjects', compact('subjects', 'stud_id', 'student', 'parent_view', 'parent', 'class'));
     }
 
-
+    public function levelStudents(Request $request)
+    {
+        $level = new Level();
+        $school_id = $this->getSchool()->id;
+        $level_id = $request->level_id;
+        $students = Student::with('user')->where(['school_id' => $school_id, 'current_level' => $level_id])->select('id', 'user_id')->get();
+        return response()->json(compact('students'), 200);
+    }
     public function promoteStudents(Request $request)
     {
         $school_id = $this->getSchool()->id;
@@ -584,61 +599,59 @@ class StudentsController extends Controller
         $promote_next_level_id = $request->promote_next_level_id;
 
         foreach ($promote_student_ids as $student_id) {
-            if ($student_id != "All") {
-                if ($promote_next_level_id == 'alumni') {
-                    $alumni = Alumni::where(['school_id' => $school_id, 'student_id' => $student_id])->first();
-                    if (!$alumni) {
-                        $alumni = new Alumni();
-                    }
-                    $alumni->school_id = $school_id;
-                    $alumni->student_id = $student_id;
-                    $alumni->graduate_session = $former_session_id;
-                    $alumni->save();
+            if ($promote_next_level_id == 'alumni') {
+                $alumni = Alumni::where(['school_id' => $school_id, 'student_id' => $student_id])->first();
+                if (!$alumni) {
+                    $alumni = new Alumni();
+                }
+                $alumni->school_id = $school_id;
+                $alumni->student_id = $student_id;
+                $alumni->graduate_session = $former_session_id;
+                $alumni->save();
+                $student = Student::find($student_id);
+
+                $student->studentship_status = 'graduated';
+                $student->save();
+            } else {
+                //we do this because of the select-all tage from the form
+
+                //let's get the student's former class
+                $student_in_class =   $student_in_class_obj->fetchStudentInClass($student_id, $former_session_id, $term_id, $school_id);
+
+                if ($student_in_class) {
+
+
                     $student = Student::find($student_id);
 
-                    $student->studentship_status = 'graduated';
-                    $student->save();
-                } else {
-                    //we do this because of the select-all tage from the form
+                    $student->current_level = $promote_next_level_id;
 
-                    //let's get the student's former class
-                    $student_in_class =   $student_in_class_obj->fetchStudentInClass($student_id, $former_session_id, $term_id, $school_id);
+                    if ($student->save()) {
+                        //perform this if the student had a class.
+                        $class_teacher_id = $student_in_class->class_teacher_id;
 
-                    if ($student_in_class) {
+                        $old_class = CClass::find($student_in_class->classTeacher->class_id);
 
+                        $old_class_section = $old_class->section; //eg..A,B,C....we need this to assign the student a new class
 
-                        $student = Student::find($student_id);
+                        //fetch the new class details
+                        $new_class = CClass::where(['school_id' => $school_id, 'level' => $promote_next_level_id, 'section' => $old_class_section])->first();
 
-                        $student->current_level = $promote_next_level_id;
-
-                        if ($student->save()) {
-                            //perform this if the student had a class.
-                            $class_teacher_id = $student_in_class->class_teacher_id;
-
-                            $old_class = CClass::find($student_in_class->classTeacher->class_id);
-
-                            $old_class_section = $old_class->section; //eg..A,B,C....we need this to assign the student a new class
-
-                            //fetch the new class details
-                            $new_class = CClass::where(['school_id' => $school_id, 'level' => $promote_next_level_id, 'section' => $old_class_section])->first();
-
-                            if (!$new_class) {
-                                // incase the sections are not named the same way
-                                $new_class = CClass::where(['school_id' => $school_id, 'level' => $promote_next_level_id])->first();
-                            }
-                            $new_class_teacher = ClassTeacher::where(['school_id' => $school_id, 'level_id' => $promote_next_level_id, 'class_id' => $new_class->id])->first();
-                            # code...
-                            //assign the student a class
-
-                            $student_in_class_obj->addStudentToClass($student_id, $new_class_teacher->id, $sess_id, $term_id, $school_id);
+                        if (!$new_class) {
+                            // incase the sections are not named the same way
+                            $new_class = CClass::where(['school_id' => $school_id, 'level' => $promote_next_level_id])->first();
                         }
+                        $new_class_teacher = ClassTeacher::where(['school_id' => $school_id, 'level_id' => $promote_next_level_id, 'class_id' => $new_class->id])->first();
+                        # code...
+                        //assign the student a class
+
+                        $student_in_class_obj->addStudentToClass($student_id, $new_class_teacher->id, $sess_id, $term_id, $school_id);
                     }
                 }
             }
         }
         // Flash::success('Promotion Process Successful');
 
-        return redirect()->route('students.index');
+        return 'success';
     }
 
 

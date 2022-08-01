@@ -430,6 +430,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('students/upload/bulk', [StudentsController::class, 'uploadBulkStudents']);
         Route::put('toggle-studentship-status/{student}', [StudentsController::class, 'toggleStudentshipStatus']);
 
+        Route::get('level-students', [StudentsController::class, 'levelStudents']);
+        Route::post('promote-students', [StudentsController::class, 'promoteStudents']);
+        Route::get('fetch-alumni', [StudentsController::class, 'fetchAlumni']);
+
         Route::get('admin-reset/password', [UsersController::class, 'adminResetUserPassword']);
         Route::put('reset/password/{user}', [UsersController::class, 'resetPassword']);
         Route::post('upload-photo', [UsersController::class, 'updatePhoto']);
