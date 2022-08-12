@@ -426,7 +426,7 @@ class Controller extends BaseController
 
                 $session = SSession::find($school->current_session);
             } else {
-                $session = SSession::orderBy('id', 'DESC')->first();
+                $session = SSession::where('is_active', '1')->orderBy('id', 'DESC')->first();
                 $school->current_session = $session->id;
                 $school->save();
             }

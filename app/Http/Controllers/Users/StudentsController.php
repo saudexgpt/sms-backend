@@ -318,7 +318,7 @@ class StudentsController extends Controller
                 $request->last_name = trim($csvRow->SURNAME);
                 $request->first_name = trim($csvRow->OTHER_NAMES);
                 $request->gender = trim(strtolower($csvRow->GENDER));
-                $request->dob = trim($csvRow->DOB);
+                $request->dob = str_replace('/', '-', trim($csvRow->DOB));
 
                 $request->admission_year    =   trim($csvRow->ADMISSION_YEAR);
 
