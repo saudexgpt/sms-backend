@@ -37,7 +37,13 @@ class StaffController extends Controller
 
         return $this->render(compact('staff'));
     }
+    public function fetchStaff()
+    {
+        $school = $this->getSchool();
+        $staff = Staff::with(['user'])->where('school_id', $school->id)->get();
 
+        return $this->render(compact('staff'));
+    }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */

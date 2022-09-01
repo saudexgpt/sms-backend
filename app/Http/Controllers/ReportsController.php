@@ -18,6 +18,7 @@ use App\Models\Teacher;
 use App\Models\Grade;
 use App\Models\IncomeAndExpense;
 use App\Laravue\JsonResponse;
+use App\Models\FeePaymentMonitor;
 use App\Models\School;
 use App\Models\Staff;
 use App\Models\Term;
@@ -63,6 +64,9 @@ class ReportsController extends Controller
                     break;
                 case 'attendance':
                     return $this->attendanceReport($request);
+                    break;
+                case 'debtors':
+                    return $this->debtorsReport();
                     break;
                 case 'finance':
                     return $this->financialReport();
@@ -304,11 +308,11 @@ class ReportsController extends Controller
         $total = [];
         $dataLabels = [
             'enabled' => true,
-            'rotation' => -90,
+            // 'rotation' => 0,
             'color' => '#FFFFFF',
             'align' => 'center',
             //format: '{point.y:.1f}', // one decimal
-            'y' => 25, // 10 pixels down from the top
+            // 'y' => 25, // 10 pixels down from the top
             'style' => [
                 'fontSize' => '10px',
                 'fontFamily' => 'Verdana, sans-serif'
@@ -350,8 +354,9 @@ class ReportsController extends Controller
             $drilldown_series_total_in_class = [];
             foreach ($level->classTeachers as $class_teacher) {
                 $males_in_class = $class_teacher->studentsInClass()->join('students', 'students_in_classes.student_id', '=', 'students.id')->join('users', 'users.id', 'students.user_id')->where(['students.school_id' => $school_id, 'gender' => 'male', 'students.admission_sess_id' => $admission_sess_id, 'students.level_admitted' => $level->id])->count();
+
                 $females_in_class = $class_teacher->studentsInClass()->join('students', 'students_in_classes.student_id', '=', 'students.id')->join('users', 'users.id', 'students.user_id')->where(['students.school_id' => $school_id, 'gender' => 'female', 'students.admission_sess_id' => $admission_sess_id, 'students.level_admitted' => $level->id])->count();
-                $total_in_class = $class_teacher->studentsInClass()->join('students', 'students_in_classes.student_id', '=', 'students.id')->where(['students.school_id' => $school_id, 'students.admission_sess_id' => $admission_sess_id, 'students.level_admitted' => $level->id])->count();
+                $total_in_class = $males_in_class + $females_in_class;
 
                 $drilldown_series_males_in_class[] = [$class_teacher->c_class->name, (int) $males_in_class];
                 $drilldown_series_females_in_class[] = [$class_teacher->c_class->name, (int) $females_in_class];
@@ -382,14 +387,14 @@ class ReportsController extends Controller
             [
                 'name' => 'Male',
                 'data' => $male, //array format
-                'color' => '#00c0ef',
-                //'dataLabels' => $dataLabels
+                // 'color' => '#00c0ef',
+                'dataLabels' => $dataLabels
             ],
             [
                 'name' => 'Female',
                 'data' => $female, //array format
-                'color' => '#DC143C',
-                //'dataLabels' => $dataLabels
+                // 'color' => '#DC143C',
+                'dataLabels' => $dataLabels
             ],
             // [
             //     'name' => 'Total',
@@ -404,7 +409,7 @@ class ReportsController extends Controller
             'categories'    => $categories,
             'series'      => $series,
             // 'title' => $school->name . ', ' . $school->lga->name,
-            'title' => 'Admission Report Chart for ' . $selected_session->name . ' Academic Session',
+            'title' => 'Admissions Chart for ' . $selected_session->name . ' Academic Session',
             'subtitle' => 'Click the columns to view report for each class',
             'selected_session' => $selected_session,
             'all_sessions' => $all_sessions,
@@ -597,58 +602,58 @@ class ReportsController extends Controller
             }
             $subject_teacher->performance = $performance;
 
-            $drilldown = $subject_teacher->subject->name;
+
+            $drilldown = null;
             $y = $subject_teacher->subject_class_average;
-            if ($y == 0) {
-                $drilldown = null;
-            }
+            if ($y > 0) {
 
+                $drilldown = $subject_teacher->subject->name;
 
-            list($grade, $color, $grade_point) = $result->resultGrade($y, $grades);
-            $data[] = [
-                'name' => $subject_teacher->subject->name,
-                'y' => (float) $y,
-                'drilldown' => $drilldown,
-                // 'color' => $color
-
-            ];
-
-            if ($subject_teacher->subject_class_average > 0) {
-
-                $drilldown_series_data = [];
-                foreach ($subject_teacher->performance as $grade => $value) {
-                    $drilldown_series_data[] = [$grade, $value];
-                }
-
-                $drilldown_series[] =    [
-                    "name" => $subject_teacher->subject->name,
-                    "id" => $subject_teacher->subject->name,
-                    "data" => $drilldown_series_data,
-
-
-
+                list($grade, $color, $grade_point) = $result->resultGrade($y, $grades);
+                $data[] = [
+                    'name' => $subject_teacher->subject->name,
+                    'y' => (float) $y,
+                    'drilldown' => $drilldown,
+                    // 'color' => $color
 
                 ];
+
+                if ($subject_teacher->subject_class_average > 0) {
+
+                    $drilldown_series_data = [];
+                    foreach ($subject_teacher->performance as $grade => $value) {
+                        $drilldown_series_data[] = [$grade, $value];
+                    }
+
+                    $drilldown_series[] =    [
+                        "name" => $subject_teacher->subject->name,
+                        "id" => $subject_teacher->subject->name,
+                        "data" => $drilldown_series_data,
+
+
+
+
+                    ];
+                }
+
+                $gender_performance_categories[] = $subject_teacher->subject->name;
+
+                $gender_performance_series_male_data[] = (float) $subject_teacher->male_average;
+                $gender_performance_series_female_data[] = (float) $subject_teacher->female_average;
             }
-
-            $gender_performance_categories[] = $subject_teacher->subject->name;
-
-            $gender_performance_series_male_data[] = (float) $subject_teacher->male_average;
-            $gender_performance_series_female_data[] = (float) $subject_teacher->female_average;
-
         endforeach;
 
         $gender_performance_series = [
             [
                 'name' => 'Male',
                 'data' => $gender_performance_series_male_data, //array format
-                'color' => '#0073b7',
+                // 'color' => '#0073b7',
                 'dataLabels' => $dataLabels
             ],
             [
                 'name' => 'Female',
                 'data' => $gender_performance_series_female_data, //array format
-                'color' => '#f012be',
+                // 'color' => '#f012be',
 
                 'dataLabels' => $dataLabels
             ],
@@ -1012,7 +1017,69 @@ class ReportsController extends Controller
     //     //return $this->render('reports.attendance', compact('attendances', 'class', 'percentage_present', 'percentage_absent', 'all_classes', 'no_of_days_in_month', 'date', 'attendance_class_id', 'students', 'marked_student_array', 'day', 'chart_only'));
     // }
 
+    public function debtorsReport()
+    {
+        $request = request()->all();
+        $school_id = $this->getSchool()->id;
+        $sess_id = $this->getSession()->id;
+        $term_id = $this->getTerm()->id;
+        if (isset($request['sess_id'], $request['term_id']) && $request['sess_id'] !== '' && $request['term_id'] !== '') {
+            $sess_id = $request['sess_id'];
+            $term_id = $request['term_id'];
+        }
 
+        $levels = $this->getLevels(); //Level::orderBy('level', 'ASC')->get();
+
+        $categories = [];
+        $total = [];
+        $labels = [];
+        foreach ($levels as $level) :
+            $categories[] = $level->level;
+
+            $debt = FeePaymentMonitor::groupBy('level_id')
+                ->where([
+                    'school_id' => $school_id,
+                    'sess_id' => $sess_id,
+                    'term_id' => $term_id,
+                    'level_id' => $level->id
+                ])
+                ->select(\DB::raw('SUM(total_fee - amount_paid) as total_debt'))
+                ->first();
+            if ($debt) {
+                //if ($debt->total_debt > 0) {
+
+                $labels[] = $level->level;
+                // $total[] = (int) $debt->total_debt;
+
+                $total[] = [
+                    'x' => $level->level,
+                    'y' => (int) ($debt->total_debt) ? $debt->total_debt : 0,
+
+                ];
+                // }
+            }
+        endforeach;
+        // for pie chart
+        // $series = $total;
+
+        // for bar chart
+        $series = [
+            [
+                'name' => 'Total Debts',
+                'data' => $total, //array format
+            ],
+        ];
+        $selected_session = SSession::find($sess_id);
+        $selected_term = Term::find($term_id);
+        // $school = School::find($school_id);
+        return $this->render([
+            'categories'    => $categories,
+            'series'      => $series,
+            'labels' => $labels,
+            'title' => 'Debtors Report for ' . $selected_term->name . ' Term,' . ' ' . $selected_session->name . ' Session',
+        ], 200);
+        //return $this->render('reports.admission', compact('levels', 'selected_session', 'all_sessions', 'admission_sess_id', 'chart_only'));
+    }
 
 
     public function financialReport()
@@ -1022,49 +1089,48 @@ class ReportsController extends Controller
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
         $term_id = $this->getTerm()->id;
+        $sess_id = $request['sess_id'];
 
-        $chart_only = "false";
-        if (isset($request['chart_only'])) {
-            $chart_only = "true";
-        }
+        // $day = (int) (date('d', strtotime($date)));
+        // $month_int = date('m', strtotime($date));
+        // $year = (int) (date('Y', strtotime($date)));
 
-        $date = date('Y-m', strtotime(todayDate())); //today
-        if (isset($request['date']) && $request['date'] != "") {
+        // $no_of_days_in_month = cal_days_in_month(CAL_GREGORIAN, $month_int, $year);
 
-            $date = $request['date'];
-        }
-        $day = (int) (date('d', strtotime($date)));
-        $month_int = date('m', strtotime($date));
-        $year = (int) (date('Y', strtotime($date)));
+        // $month_str = date('F', strtotime($date));
 
-        $no_of_days_in_month = cal_days_in_month(CAL_GREGORIAN, $month_int, $year);
-
-        $month_str = date('F', strtotime($date));
-
-        $income_n_expenses = IncomeAndExpense::selectRaw('SUM(amount) as sum, status, DATE(created_at) as date')
-            ->groupBy('date', 'status')
-            ->where(['school_id' => $school_id, 'pay_month' => $month_str, 'pay_year' => $year])
+        $income_n_expenses = IncomeAndExpense::selectRaw('SUM(amount) as sum, status, term_id')
+            ->groupBy('term_id', 'status')
+            ->where('deletable', '0')
+            ->where(['school_id' => $school_id, 'sess_id' => $sess_id])
             ->get();
-
-
-
+        $income_data = [0, 0, 0];
+        $expenses_data = [0, 0, 0];
         $total_income = 0;
         $total_expenses = 0;
         foreach ($income_n_expenses as $income_n_expense) {
 
-
-            if ($income_n_expense->status == 'income') {
-                $income_n_expense->income = $income_n_expense->sum;
-                $total_income += $income_n_expense->sum;
-            } else if ($income_n_expense->status == 'expenses') {
-                $income_n_expense->expenditure = $income_n_expense->sum;
-                $total_expenses += $income_n_expense->sum;
+            $term_id = $income_n_expense->term_id;
+            $sum = $income_n_expense->sum;
+            if ($income_n_expense->status === 'income') {
+                $income_data[$term_id - 1] = $sum;
+                $total_income += $sum;
+            }
+            if ($income_n_expense->status === 'expenses') {
+                // $expenses_data[$term_id - 1] = $sum;
+                $expenses_data[$term_id - 1] = $sum * -1; // we want to make the expenses negative
+                $total_expenses += $sum;
             }
         }
-        $total_money = $total_income + $total_expenses;
+        $bar_chart_series = [
+            ['name' => 'Income', 'data' => $income_data],
+            ['name' => 'Expenditure', 'data' => $expenses_data]
+        ];
+        $pie_chart_series = [$total_income, $total_expenses];
+        $profit = $total_income - $total_expenses;
 
 
-        return $this->render('reports.finance', compact('income_n_expenses', 'date', 'total_income', 'total_expenses', 'no_of_days_in_month', 'chart_only'));
+        return $this->render(compact('bar_chart_series', 'pie_chart_series', 'profit', 'total_income', 'total_expenses'));
     }
 
 

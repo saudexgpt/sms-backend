@@ -132,6 +132,7 @@ class Controller extends BaseController
         $this->data['school'] = $this->getSchool();
         $this->data['current_session'] = $this->getSession();
         $this->data['current_term'] = $this->getTerm();
+        $this->data['currency'] = '₦';
         // if (Auth::check()) {
         //     if ($this->getUser()->password_status == 'default') {
 
