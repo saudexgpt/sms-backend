@@ -10,28 +10,31 @@ class StaffSalaryPayment extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function school() {
+    public function school()
+    {
         return $this->belongsTo(School::class);
     }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function staff() {
+    public function staff()
+    {
         return $this->belongsTo(Staff::class);
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function accountant() {
-        return $this->belongsTo(Staff::class, 'recorded_by', 'id');
+    public function accountant()
+    {
+        return $this->belongsTo(User::class, 'recorded_by', 'id');
     }
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function staffLevel() {
-        return $this->belongsTo(StaffLevel::class);
+    public function monitor()
+    {
+        return $this->belongsTo(SalaryPaymentMonitor::class, 'salary_payment_monitor_id', 'id');
     }
-
 }
