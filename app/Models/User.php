@@ -311,16 +311,11 @@ class User extends Authenticatable
 
 
         $this->dob = date('Y-m-d', strtotime($request->dob));
-        $gender = strtolower($request->gender);
-        $this->gender = $gender;
-        if ($gender == 'm' || $gender == 'male') {
-            $this->gender = 'male';
-        } else {
-            $this->gender = 'female';
-        }
+
         $this->religion = $request->religion;
 
         if ($action == 'update') {
+            $this->gender = strtolower($request->gender);
             //this is the students.id from students table
             // $id = $request->student_id;
             // $student = Student::findOrFail($id);
@@ -333,6 +328,13 @@ class User extends Authenticatable
 
             return $this->id;
         } else {
+            $gender = strtolower($request->gender);
+            $this->gender = $gender;
+            if ($gender == 'm' || $gender == 'male') {
+                $this->gender = 'male';
+            } else {
+                $this->gender = 'female';
+            }
             $this->username = $username;
             $this->password = $username; //$request->password;
             $this->role = 'student';
