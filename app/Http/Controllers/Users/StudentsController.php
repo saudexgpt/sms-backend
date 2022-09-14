@@ -392,7 +392,7 @@ class StudentsController extends Controller
             // update student details
             $student->saveStudentInfo($request, 'update');
             // $request->student_user_id = $student->user_id;
-            $student_user->saveUserAsStudent($request, 'update');
+            $student_user->updateUserAsStudent($request);
 
             // update parent info
 
