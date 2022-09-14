@@ -279,7 +279,7 @@ class User extends Authenticatable
     }
     public function saveUserAsStudent($request, $action = "save")
     {
-        $uniq_id = $request->parent_user_id;
+        // $uniq_id = $request->parent_user_id;
         $username = $request->username;
         $this->first_name = $request->first_name;
         $this->last_name = $request->last_name;
