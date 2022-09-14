@@ -38,6 +38,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'confirm_hash'
     ];
 
     /**
@@ -309,40 +310,33 @@ class User extends Authenticatable
 
 
 
-
+        $this->dob = date('Y-m-d', strtotime($request->dob));
+        $gender = strtolower($request->gender);
+        $this->gender = $gender;
+        if ($gender == 'm' || $gender == 'male') {
+            $this->gender = 'male';
+        } else {
+            $this->gender = 'female';
+        }
+        $this->religion = $request->religion;
 
         if ($action == 'update') {
             //this is the students.id from students table
-            $id = $request->student_id;
-            $student = Student::findOrFail($id);
+            // $id = $request->student_id;
+            // $student = Student::findOrFail($id);
 
             //get the users.id from the students table
-            $this->id = $student->user_id;
-            $this->dob = date('Y-m-d', strtotime($request->dob));
-            $gender = strtolower($request->gender);
-            if ($gender == 'm' || $gender == 'male') {
-                $this->gender = 'male';
-            } else {
-                $this->gender = 'female';
-            }
+            // $this->id = $student->user_id;
+
             //retrieve  user fields to perform update action
             $this->save();
 
             return $this->id;
         } else {
-            $this->dob = date('Y-m-d', strtotime($request->dob));
             $this->username = $username;
-            $gender = strtolower($request->gender);
-            if ($gender == 'm' || $gender == 'male') {
-                $this->gender = 'male';
-            } else {
-                $this->gender = 'female';
-            }
-
             $this->password = $username; //$request->password;
             $this->role = 'student';
             $this->password_status = defaultPasswordStatus();
-            $this->religion = $request->religion;
             $this->save();
 
             return $this->id;
