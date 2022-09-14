@@ -210,10 +210,10 @@ class User extends Authenticatable
         }
         if ($action == 'update') {
 
-            $user_id  = $request->parent_user_id;
-            $user = User::withTrashed()->find($user_id);
+            // $user_id  = $request->parent_user_id;
+            // $user = User::withTrashed()->find($user_id);
             $user->gender = ($request->sponsor_gender) ? $request->sponsor_gender : 'male';
-            $user->photo = photoPath($request->school, ['type' => 'default', 'file' => strtolower($request->gender) . '.png']);
+            // $user->photo = photoPath($request->school, ['type' => 'default', 'file' => strtolower($request->gender) . '.png']);
             //$user->mime = $request->mime;
             $user->first_name = $request->fname;
             $user->last_name = $request->lname;
