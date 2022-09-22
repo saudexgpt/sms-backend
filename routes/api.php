@@ -40,6 +40,7 @@ use App\Http\Controllers\Account\FeesController;
 use App\Http\Controllers\Account\AccountController;
 use App\Http\Controllers\Account\PaymentsController;
 use App\Http\Controllers\Account\SalaryController;
+use App\Http\Controllers\Setup\RegistrationPinsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,13 @@ Route::get('materials/read/{material}', [MaterialsController::class, 'readMateri
 Route::get('fetch-curriculum-setup', [CurriculumCategoryController::class, 'fetchCurriculumCategory']);
 Route::get('set-admin-role', [Controller::class, 'setAdminRole']);
 Route::post('register-potential-school', [SchoolsController::class, 'registerPotentialSchool']);
+
+Route::get('confirm-pin', [RegistrationPinsController::class, 'confirmPin']);
+Route::get('students/create', [StudentsController::class, 'create']);
+Route::get('staff/create', [StaffController::class, 'create']);
+Route::post('students/store-with-pin', [StudentsController::class, 'storeWithPin']);
+Route::post('staff/store-with-pin', [StaffController::class, 'storeWithPin']);
+
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
@@ -434,7 +442,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('session/activate', [SessionsController::class, 'activate']);
         Route::post('term/activate', [TermsController::class, 'activate']);
 
+        ////////////////Registration PINs//////////////////////////////
+        Route::get('students-pins', [RegistrationPinsController::class, 'studentsPins']);
+        Route::get('staff-pins', [RegistrationPinsController::class, 'staffPins']);
+        Route::post('store-pins', [RegistrationPinsController::class, 'store']);
+        Route::put('change-status/{registrationPin}', [RegistrationPinsController::class, 'changeStatus']);
 
+        Route::post('delete-pins', [RegistrationPinsController::class, 'destroy']);
         ///////////////Super Admin Session management///////////////////////
         Route::get('session/index', [SessionsController::class, 'index']);
         Route::post('session/store', [SessionsController::class, 'store']);
@@ -509,6 +523,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('admin-reset/password', [UsersController::class, 'adminResetUserPassword']);
         Route::put('reset/password/{user}', [UsersController::class, 'resetPassword']);
         Route::post('upload-photo', [UsersController::class, 'updatePhoto']);
+        Route::put('approve-user/{user}', [UsersController::class, 'approveUser']);
 
         // Route::resource('staff', StaffController::class);
         Route::get('staff', [StaffController::class, 'index']);
