@@ -71,6 +71,7 @@ class UserResource extends JsonResource
         $used_space = '0 Byte';
         $system_set_session = SSession::where('is_active', '1')->orderBy('id', 'DESC')->first();
         $system_set_term = Term::where('is_active', '1')->first();
+        $whatsapp_no = '2347044449412';
         if ($school != '') {
             $module_packages = $school->package->packageModules;
             foreach ($module_packages as $module_package) {
@@ -84,6 +85,7 @@ class UserResource extends JsonResource
             $dir_size = byteToGB($dir_size_in_byte);
             $percentage_used_space = percentageDirUsage($dir_size, $school->disk_space);
             $used_space = folderSizeFilter($dir_size_in_byte);
+            $whatsapp_no = $school->whatsapp_no;
         }
         return [
             'id' => $this->id,
@@ -121,7 +123,7 @@ class UserResource extends JsonResource
             'avatar' => '/' . $this->photo, //'https://i.pravatar.cc',
             'photo' => '/' . $this->photo,
             'can_edit' => $can_edit,
-            'whatsapp_no' => '2347044449412'
+            'whatsapp_no' => $whatsapp_no,
         ];
     }
 }
