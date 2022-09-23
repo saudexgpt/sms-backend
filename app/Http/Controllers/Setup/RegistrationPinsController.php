@@ -85,21 +85,35 @@ class RegistrationPinsController extends Controller
         //
         $quantity = $request->quantity;
         $type = $request->pin_type;
+        $is_general = 1;
+        $status = 'given';
+        if ($type === 'student') {
+            $is_general = 0;
+            $status = 'unused';
+        }
+        if ($request->pin_type === 'general_student') {
+            $type = 'student';
+        }
         // $school_id = $request->school_id;
         $school_id = $this->getSchool()->id;
 
         for ($i = 1; $i <= $quantity; $i++) {
 
             $pin = randomCode();
+            // make sure we don't have a duplicate pin
+            $check_pin = RegistrationPin::where('pin', $pin)->first();
 
-            $reg_pin = RegistrationPin::where('pin', $pin)->first();
+            if (!$check_pin) {
+                $reg_pin = RegistrationPin::where(['school_id' => $school_id, 'is_general' => 1, 'pin_type' => $type])->first();
+                if (!$reg_pin) {
+                    $reg_pin = new RegistrationPin();
 
-            if (!$reg_pin) {
-                $reg_pin = new RegistrationPin();
-                $reg_pin->school_id = $school_id;
-                $reg_pin->pin_type = $type;
+                    $reg_pin->school_id = $school_id;
+                    $reg_pin->pin_type = $type;
+                    $reg_pin->is_general = $is_general;
+                    $reg_pin->status = $status; //unused, used or given
+                }
                 $reg_pin->pin = $pin;
-                $reg_pin->status = 'unused'; //unused, used or given
                 $reg_pin->save();
             }
         }

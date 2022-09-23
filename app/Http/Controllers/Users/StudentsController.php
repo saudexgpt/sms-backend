@@ -376,9 +376,10 @@ class StudentsController extends Controller
 
         $registrationPin = RegistrationPin::find($request->pin_id);
         if ($registrationPin) {
-
-            $registrationPin->status = 'used';
-            $registrationPin->save();
+            if ($registrationPin->is_general === 0) {
+                $registrationPin->status = 'used';
+                $registrationPin->save();
+            }
         }
 
         // $action = "Registered " . $request->first_name . " " . $request->last_name . " as new student";

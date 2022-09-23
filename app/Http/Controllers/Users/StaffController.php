@@ -129,12 +129,12 @@ class StaffController extends Controller
             //Notification::send($all_staff, new NewRegistration($new_user));
 
             // change Registration pin status to used
-            $registrationPin = RegistrationPin::find($request->pin_id);
-            if ($registrationPin) {
+            // $registrationPin = RegistrationPin::find($request->pin_id);
+            // if ($registrationPin) {
 
-                $registrationPin->status = 'used';
-                $registrationPin->save();
-            }
+            //     $registrationPin->status = 'used';
+            //     $registrationPin->save();
+            // }
             return 'Successful';
 
             // Flash::success('Staff information added successfully');
