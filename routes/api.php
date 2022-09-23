@@ -299,7 +299,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('/teacher/subject-materials', [MaterialsController::class, 'teacherSubjectMaterials']);
         Route::post('/store', [MaterialsController::class, 'store']);
         Route::get('/subject-materials/{subject_teacher}', [MaterialsController::class, 'subjectMaterials']);
-
+        Route::put('change-status/{material}', [MaterialsController::class, 'changeStatus']);
 
         Route::delete('/delete/{id}', [MaterialsController::class, 'destroy']);
     });
