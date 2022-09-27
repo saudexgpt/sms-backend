@@ -23,24 +23,24 @@ class LevelsController extends Controller
         return $this->render(compact('levels'));
     }
 
-    public function fetchSpecificCurriculumLevels()
+    public function fetchCurriculumCategories()
     {
         $curriculum_categories = CurriculumCategory::with('curriculumLevelGroups.curriculumLevels')->get();
         return response()->json(compact('curriculum_categories'), 200);
     }
-    // public function fetchSpecificCurriculumLevels()
-    // {
-    //     $curriculum_level_groups = [];
-    //     $school = $this->getSchool();
-    //     if ($school) {
+    public function fetchSpecificCurriculumLevels()
+    {
+        $curriculum_level_groups = [];
+        $school = $this->getSchool();
+        if ($school) {
 
-    //         $curriculum_category_id = CurriculumCategory::where('name', ucwords($school->curriculum))->first()->id;
-    //         $curriculum_level_groups = CurriculumLevelGroup::with('curriculumLevels')->where('curriculum_category_id', $curriculum_category_id)->get();
-    //     }
+            $curriculum_category_id = CurriculumCategory::where('name', ucwords($school->curriculum))->first()->id;
+            $curriculum_level_groups = CurriculumLevelGroup::with('curriculumLevels')->where('curriculum_category_id', $curriculum_category_id)->get();
+        }
 
-    //     // return $this->render(compact('curriculum_level_groups'));
-    //     return response()->json(compact('curriculum_level_groups'), 200);
-    // }
+        // return $this->render(compact('curriculum_level_groups'));
+        return response()->json(compact('curriculum_level_groups'), 200);
+    }
 
 
     public function fetchLevelAndClass()

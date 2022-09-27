@@ -424,6 +424,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
         Route::get('fetch-level-class', [LevelsController::class, 'fetchLevelAndClass']);
         Route::get('fetch-specific-curriculum-level-groups', [LevelsController::class, 'fetchSpecificCurriculumLevels']);
+        Route::get('fetch-curriculum-categories', [LevelsController::class, 'fetchCurriculumCategories']);
         Route::post('level/save', [LevelsController::class, 'store']);
         Route::put('level/update/{level}', [LevelsController::class, 'update']);
         Route::delete('level/destroy/{level}', [LevelsController::class, 'destroy']);
