@@ -341,10 +341,13 @@ class AssignmentsController extends Controller
             $student = $this->getStudent();
             $can_edit = true;
         }
+        $assignment = Assignment::find($id);
+        if ($assignment->deadline < $today) {
+            $can_edit = false;
+        }
         $assignment_to_tackle = AssignmentStudent::with('assignment')->where(['student_id' => $student->id, 'assignment_id' => $id])->first();
         if ($assignment_to_tackle) {
-            $assignment = $assignment_to_tackle->assignment;
-            if ($assignment_to_tackle->score != null || $assignment->deadline < $today) {
+            if ($assignment_to_tackle->score != null) {
                 $can_edit = false;
             }
         }
