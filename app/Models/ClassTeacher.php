@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassTeacher extends Model
 {
+    use SoftDeletes;
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -26,6 +28,10 @@ class ClassTeacher extends Model
         return $this->belongsTo(CClass::class, 'class_id', 'id');
     }
 
+    public function firstStudentInClass()
+    {
+        return $this->hasOne(StudentsInClass::class);
+    }
     public function studentsInClass()
     {
         return $this->hasMany(StudentsInClass::class);

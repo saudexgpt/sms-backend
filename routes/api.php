@@ -433,12 +433,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('class/assign-teacher', [ClassesController::class, 'assignClassTeacher']);
 
         Route::get('class-teacher-class', [ClassesController::class, 'classTeacherClasses']);
+        Route::delete('class/destroy/{class_teacher}', [ClassesController::class, 'destroy']);
 
         Route::resource('sections', SectionsController::class);
         Route::resource('subjects', SubjectsController::class);
         Route::delete('subject/destroy/{subject}', [SubjectsController::class, 'destroy']);
         Route::get('fetch-teacher-subject', [SubjectsController::class, 'fetchTeacherSubject']);
         Route::put('assign-subject/{subject_teacher}', [SubjectsController::class, 'assignSubject']);
+        Route::put('enable-subject/{subject}', [SubjectsController::class, 'enableSubject']);
 
         Route::post('session/activate', [SessionsController::class, 'activate']);
         Route::post('term/activate', [TermsController::class, 'activate']);
