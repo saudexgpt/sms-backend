@@ -42,6 +42,7 @@ class UserResource extends JsonResource
         $suspended_for_nonpayment = 0;
         if ($this->student) {
             $school  = $this->student->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
+            $suspended_for_nonpayment = $school->suspended_for_nonpayment;
             if ($this->student->studentship_status != 'active') {
                 $suspended_for_nonpayment = 1;
             }
@@ -50,6 +51,7 @@ class UserResource extends JsonResource
             $wards = $this->guardian->guardianStudents;
             $school  = $this->guardian->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
             $active = 0;
+            $suspended_for_nonpayment = $school->suspended_for_nonpayment;
             foreach ($wards as $ward) {
                 $student = $ward->student;
                 if ($student->studentship_status === 'active') {
@@ -64,6 +66,7 @@ class UserResource extends JsonResource
         }
         if ($this->staff) {
             $school  = $this->staff->school()->with(['package.packageModules.module', 'currentTerm', 'currentSession'])->first();
+            $suspended_for_nonpayment = $school->suspended_for_nonpayment;
         }
         $modules = [];
         $dir_size = 0;
