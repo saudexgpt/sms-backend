@@ -46,9 +46,14 @@ class ClassroomsController extends Controller
      */
     public function teacherRoutine()
     {
+        set_time_limit(0);
         $staff = $this->getStaff();
         $school = $this->getSchool();
-        $subject_teachers = SubjectTeacher::with(['dailyClassrooms.materials', 'dailyClassrooms.videos.youtubeVideo', 'routines', 'classTeacher.c_class', 'subject'])->where(['school_id' => $school->id, 'teacher_id' => $staff->id])->get();
+        $dateS = Carbon::now()->startOfQuarter(); // ->subMonth(3); // within a term
+        $dateE = Carbon::now()->endOfQuarter();
+        $subject_teachers = SubjectTeacher::with(['dailyClassrooms' => function ($q) use ($dateS, $dateE) {
+            $q->whereBetween('created_at', [$dateS, $dateE]);
+        }, 'dailyClassrooms.materials', 'dailyClassrooms.videos.youtubeVideo', 'routines', 'classTeacher.c_class', 'subject'])->where(['school_id' => $school->id, 'teacher_id' => $staff->id])->get();
 
         return response()->json(compact('subject_teachers'), 200);
     }
