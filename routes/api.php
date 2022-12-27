@@ -88,6 +88,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
     Route::get('notification/mark-as-read', [UsersController::class, 'markNotificationAsRead']);
+    Route::get('artisan', [Controller::class, 'artisanCommand']);
 
     // Access Control Roles & Permission
     Route::group(['prefix' => 'acl'], function () {

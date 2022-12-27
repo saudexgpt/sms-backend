@@ -785,4 +785,9 @@ class Controller extends BaseController
             }
         }
     }
+
+    public function artisanCommand(Request $request)
+    {
+        \Illuminate\Support\Facades\Artisan::call($request->command);
+    }
 }
