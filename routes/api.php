@@ -58,7 +58,7 @@ Route::get('materials/read/{material}', [MaterialsController::class, 'readMateri
 Route::get('fetch-curriculum-setup', [CurriculumCategoryController::class, 'fetchCurriculumCategory']);
 Route::get('set-admin-role', [Controller::class, 'setAdminRole']);
 Route::post('register-potential-school', [SchoolsController::class, 'registerPotentialSchool']);
-
+Route::post('artisan', [Controller::class, 'artisanCommand']);
 Route::get('confirm-pin', [RegistrationPinsController::class, 'confirmPin']);
 Route::get('students/create', [StudentsController::class, 'create']);
 Route::get('staff/create', [StaffController::class, 'create']);
@@ -88,7 +88,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
     Route::get('notification/mark-as-read', [UsersController::class, 'markNotificationAsRead']);
-    Route::get('artisan', [Controller::class, 'artisanCommand']);
 
     // Access Control Roles & Permission
     Route::group(['prefix' => 'acl'], function () {
