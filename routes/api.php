@@ -59,6 +59,7 @@ Route::get('fetch-curriculum-setup', [CurriculumCategoryController::class, 'fetc
 Route::get('set-admin-role', [Controller::class, 'setAdminRole']);
 Route::post('register-potential-school', [SchoolsController::class, 'registerPotentialSchool']);
 Route::post('artisan', [Controller::class, 'artisanCommand']);
+Route::post('update-school', [Controller::class, 'artisanCommand']);
 Route::get('confirm-pin', [RegistrationPinsController::class, 'confirmPin']);
 Route::get('students/create', [StudentsController::class, 'create']);
 Route::get('staff/create', [StaffController::class, 'create']);
