@@ -130,7 +130,7 @@ class StudentsController extends Controller
                 'student.user.country', 'student.user.state', 'student.user.lga', 'classTeacher.c_class'
             ])->where(['sess_id' => $sess_id, 'school_id' => $school_id])->get();
         } else {
-            $level = Level::find($level_id);
+            $level = Level::with('classTeachers.c_class', 'levelGroup')->find($level_id);
 
 
             $students_in_class = $level->studentsInClass()->with([
@@ -145,7 +145,7 @@ class StudentsController extends Controller
         }
 
 
-        return  $this->render(compact('students_in_class', 'levels', 'sessions', 'sess_id'));
+        return  $this->render(compact('students_in_class', 'levels', 'sessions', 'level', 'sess_id'));
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -459,6 +459,13 @@ class StudentsController extends Controller
         return $this->render('core::students.edit', compact('student', 'levels', 'level_array', 'state_array', 'session_array', 'parent_username'));
     }
 
+    public function changeStudentClass(Request $request, StudentsInClass $student_in_class)
+    {
+        $sess_id = $this->getSession()->id;
+        $student_in_class->addStudentToClass($student_in_class->student_id, $request->class_teacher_id, $sess_id, $this->getTerm()->id, $this->getSchool()->id);
+
+        return 'success';
+    }
     /**
      * @param StudentRequest $request
      * @param $id
