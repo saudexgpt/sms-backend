@@ -11,7 +11,8 @@ use App\Models\ClassTeacher;
 use App\Models\StudentsInClass;
 use App\Models\LocalGovernmentArea;
 use App\Models\State;
-use App\Http\Requests\GuardianRequest;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 use Laracasts\Flash\Flash;
@@ -28,6 +29,12 @@ class GuardiansController extends Controller
         return $this->render(compact('guardians'));
     }
 
+    public function fetchGuardians()
+    {
+        $guardians = Guardian::with('user')->where('school_id', $this->getSchool()->id)->get();
+        return $this->render(compact('guardians'));
+    }
+
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
@@ -41,27 +48,34 @@ class GuardiansController extends Controller
      * @param Guardian $guardian
      * @return \Illuminate\Http\RedirectResponse
      */
-    // public function store(GuardianRequest $request, Guardian $guardian)
-    // {
-    //     $inputs = $request->all();
-    //     $mime = $request->file('avatar')->getClientMimeType();
-    //     $name = "guardian_" . time() . "." . $request->file('avatar')->guessClientExtension();
-    //     $avatar = $request->file('avatar')->storeAs('guardians', $name, 'public');
-    //     $inputs['avatar'] = $avatar;
-    //     $inputs['mime'] = $mime;
-    //     $inputs['school_id'] = $this->getSchool()->id;
-    //     $guardian = $guardian->create($inputs);
+    public function store(Request $request)
+    {
+        $school = $this->getSchool();
+        $username = $this->generateUsername($school->id, 'parent');
+        $request->username = $username;
 
-    //     // Create parent account
-    //     $guardian->user()->create([
-    //         'email' => $inputs['email'],
-    //         'password' => $inputs['password'],
-    //         'account_holder_type' => 'parent'
-    //     ]);
+        $user_obj = new User();
+        list($user_id, $entry_status) = $user_obj->saveUserAsParent($request);
 
-    //     Flash::success('Parent information added successfully');
-    //     return redirect()->route('parents.index');
-    // }
+        if ($entry_status == 'new_entry') {
+            $this->updateUniqNumDb($school->id, 'parent');
+        } else {
+            return response()->json(['message' => "User with email ($request->email) already exists"], 500);
+        }
+
+        $guardian = Guardian::where('user_id', $user_id)->first();
+
+        if (!$guardian) {
+
+            $guardian = new Guardian();
+            $guardian->school_id = $school->id;
+            $guardian->user_id = $user_id;
+            $guardian->occupation = $request->occupation;
+            $guardian->save();
+        }
+
+        return response()->json(compact('username'), 200);
+    }
 
     // /**
     //  * @param $id
@@ -83,36 +97,22 @@ class GuardiansController extends Controller
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    // public function update(GuardianRequest $request, $id)
-    // {
-    //     try {
-    //         $guardian = Guardian::findOrFail($id);
-    //         $inputs = $request->all();
+    public function update(Request $request, User $user)
+    {
+        $school = $this->getSchool();
+        $user_id = $user->id;
+        $user->saveUserAsParent($request, 'update');
+        $guardian = Guardian::where('user_id', $user_id)->first();
 
-    //         if ($request->hasFile('avatar')) {
-    //             // Unlink the old image
-    //             Storage::disk('public')->delete($guardian->avatar);
+        if (!$guardian) {
+            $guardian = new Guardian();
+        }
 
-    //             $mime = $request->file('avatar')->getClientMimeType();
-    //             $name = "guardian_" . time() . "." . $request->file('avatar')->guessClientExtension();
-    //             $logo = $request->file('avatar')->storeAs('guardians', $name, 'public');
-    //             $inputs['avatar'] = $logo;
-    //             $inputs['mime'] = $mime;
-    //         }
-    //         $guardian->update($inputs);
-    //         if ($inputs['password'] != "") {
-    //             $user = $guardian->user;
-    //             $user->email = $inputs['email'];
-    //             $user->password = $inputs['password'];
-    //             $user->save();
-    //         }
-    //         Flash::success('Parent information updated successfully');
-    //         return redirect()->route('parents.index');
-    //     } catch (ModelNotFoundException $ex) {
-    //         Flash::error('Error: ' . $ex->getMessage());
-    //         return redirect()->route('parents.index');
-    //     }
-    // }
+        $guardian->school_id = $school->id;
+        $guardian->user_id = $user_id;
+        $guardian->occupation = $request->occupation;
+        $guardian->save();
+    }
 
     /**
      * @param $id

@@ -516,6 +516,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('students/create', [StudentsController::class, 'create']);
         Route::post('students/store', [StudentsController::class, 'store']);
         Route::put('students/update/{student_in_class}', [StudentsController::class, 'update']);
+        Route::put('student/change-class/{student_in_class}', [StudentsController::class, 'changeStudentClass']);
+
+
         Route::get('students/show/{student}', [StudentsController::class, 'show']);
         Route::post('students/upload/bulk', [StudentsController::class, 'uploadBulkStudents']);
         Route::put('toggle-studentship-status/{student}', [StudentsController::class, 'toggleStudentshipStatus']);
@@ -540,6 +543,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::delete('staff/destroy/{staff}', [StaffController::class, 'destroy']);
 
         Route::get('guardians', [GuardiansController::class, 'index']);
+        Route::get('fetch-guardians', [GuardiansController::class, 'fetchGuardians']);
+        Route::post('save-parent', [GuardiansController::class, 'store']);
+        Route::put('update-parent/{user}', [GuardiansController::class, 'update']);
         Route::get('guardian/show/{guardian}', [GuardiansController::class, 'show']);
     });
 

@@ -130,7 +130,7 @@ class StudentsController extends Controller
                 'student.user.country', 'student.user.state', 'student.user.lga', 'classTeacher.c_class'
             ])->where(['sess_id' => $sess_id, 'school_id' => $school_id])->get();
         } else {
-            $level = Level::find($level_id);
+            $level = Level::with('classTeachers.c_class', 'levelGroup')->find($level_id);
 
 
             $students_in_class = $level->studentsInClass()->with([
@@ -145,7 +145,7 @@ class StudentsController extends Controller
         }
 
 
-        return  $this->render(compact('students_in_class', 'levels', 'sessions', 'sess_id'));
+        return  $this->render(compact('students_in_class', 'levels', 'sessions', 'level', 'sess_id'));
     }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -210,7 +210,7 @@ class StudentsController extends Controller
         $reg_no = $this->generateUsername($school_id, 'student');
         //$this->updateUniqNumDb($school->id, 'student');
 
-        $parent_username = $this->generateUsername($school_id, 'parent');
+        // $parent_username = $this->generateUsername($school_id, 'parent');
         //$this->updateUniqNumDb($school->id, 'parent');
         $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school_id)->orderBy('id')->get();
 
@@ -219,8 +219,8 @@ class StudentsController extends Controller
         $admission_sessions = SSession::where('id', '<=', $sess_id)->orderBy('id', 'DESC')->get();
         //////////////////////////////////////////////////////////////////////////
 
-
-        return  response()->json(compact('levels', 'countries', 'selected_country', 'reg_no', 'admission_sessions', 'parent_username'));
+        $guardians = Guardian::with('user')->where('school_id', $this->getSchool()->id)->get();
+        return  response()->json(compact('levels', 'countries', 'selected_country', 'reg_no', 'admission_sessions', 'guardians'));
         /*}
         return redirect()->route('student_reg_pin');*/
     }
@@ -269,14 +269,14 @@ class StudentsController extends Controller
         $request->folder_key = $school->folder_key;
 
 
-        $username = $this->generateUsername($school->id, 'parent');
-        $request->username = $username;
+        // $username = $this->generateUsername($school->id, 'parent');
+        // $request->username = $username;
         $user_obj = new User();
-        list($request->parent_user_id, $entry_status) = $user_obj->saveUserAsParent($request);
+        // list($request->parent_user_id, $entry_status) = $user_obj->saveUserAsParent($request);
 
-        if ($entry_status == 'new_entry') {
-            $this->updateUniqNumDb($school->id, 'parent');
-        }
+        // if ($entry_status == 'new_entry') {
+        //     $this->updateUniqNumDb($school->id, 'parent');
+        // }
 
         // check for duplicate students
 
@@ -304,7 +304,8 @@ class StudentsController extends Controller
         //save guardian informaiton
         $guardian_obj = new Guardian();
 
-        $guardian_obj->saveGuardianInfo($request);
+        // $guardian_obj->saveGuardianInfo($request);
+        $guardian_obj->saveGuardianStudent($request->guardian_id, $request->student_id, $request->relation);
 
         $action = "Registered " . $request->first_name . " " . $request->last_name . " as new student";
         $this->auditTrailEvent($request, $action);
@@ -459,6 +460,13 @@ class StudentsController extends Controller
         return $this->render('core::students.edit', compact('student', 'levels', 'level_array', 'state_array', 'session_array', 'parent_username'));
     }
 
+    public function changeStudentClass(Request $request, StudentsInClass $student_in_class)
+    {
+        $sess_id = $this->getSession()->id;
+        $student_in_class->addStudentToClass($student_in_class->student_id, $request->class_teacher_id, $sess_id, $this->getTerm()->id, $this->getSchool()->id);
+
+        return 'success';
+    }
     /**
      * @param StudentRequest $request
      * @param $id
@@ -471,9 +479,8 @@ class StudentsController extends Controller
         $student_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user'])->find($student_in_class->id);
         $student = $student_in_class->student;
         $student_user = User::withTrashed()->find($student->user_id);
-        $student_guardian = $student->studentGuardian;
-        $guardian = $student_guardian->guardian;
-        $guardian_user = User::withTrashed()->find($guardian->user_id);
+        // $student_guardian = $student->studentGuardian;
+        // $guardian = $student_guardian->guardian;
         $sess_id = $this->getSession()->id;
         $request->admission_year = SSession::find($request->admission_sess_id)->name;
         try {
@@ -482,15 +489,6 @@ class StudentsController extends Controller
             // $request->student_user_id = $student->user_id;
             $student_user->updateUserAsStudent($request);
 
-            // update parent info
-
-            $student_guardian->relationship = $request->relation;
-            $student_guardian->save();
-
-            $guardian->occupation = $request->occupation;
-            $guardian->save();
-            $request->parent_user_id = $guardian_user->id;
-            $guardian_user->saveUserAsParent($request, 'update');
 
             //add student to class
             $student_in_class->addStudentToClass($student->id, $request->class_teacher_id, $sess_id, $this->getTerm()->id, $this->getSchool()->id);
@@ -499,7 +497,8 @@ class StudentsController extends Controller
             //save guardian informaiton
             $guardian = new Guardian();
 
-            $guardian->saveGuardianInfo($request);
+            // $guardian->saveGuardianInfo($request);
+            $guardian->saveGuardianStudent($request->guardian_id, $student->id, $request->relation);
 
             $student_in_class = StudentsInClass::with(['student.studentGuardian.guardian.user', 'student.user'])->find($student_in_class->id);
             return response()->json(compact('student_in_class'), 200);

@@ -49,6 +49,21 @@ class Guardian extends Model
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
 
+    public function saveGuardianStudent($guardianId, $studentId, $relationship)
+    {
+        $guardian_student = GuardianStudent::where('student_id', $studentId)->first();
+        if (!$guardian_student) {
+            $guardian_student = new GuardianStudent();
+        }
+
+
+
+        //save new relationship
+        $guardian_student->guardian_id = $guardianId;
+        $guardian_student->student_id = $studentId;
+        $guardian_student->relationship = $relationship;
+        $guardian_student->save();
+    }
     public function saveGuardianInfo($request)
     {
         //$this->student_id = $request->student_id;

@@ -302,7 +302,7 @@ class AttendanceController extends Controller
 
         $sub_attend->term_id = $term_id;
 
-        $sub_attend->date = date('Y-m-d', strtotime($request->date));
+        $sub_attend->date = (isset($request->date) && $request->date !== '') ? date('Y-m-d', strtotime($request->date)) : date('Y-m-d', strtotime('now'));
 
         $sub_attend->save();
 
