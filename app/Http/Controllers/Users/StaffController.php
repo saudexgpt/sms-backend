@@ -33,12 +33,12 @@ class StaffController extends Controller
         set_time_limit(0);
         $school = $this->getSchool();
         $staff = Staff::with(['user.roles', 'user.country.states.lgas', 'user.state', 'user.lga'])->where('school_id', $school->id)->get();
-        // foreach ($staff as $each_staff) {
-        //     if ($each_staff->user) {
+        foreach ($staff as $each_staff) {
+            if ($each_staff->user) {
 
-        //         $each_staff->user->permissions = $each_staff->user->allPermissions();
-        //     }
-        // }
+                $each_staff->user->permissions = $each_staff->user->allPermissions();
+            }
+        }
 
         return $this->render(compact('staff'));
     }
