@@ -30,6 +30,7 @@ class StaffController extends Controller
      */
     public function index()
     {
+        set_time_limit(0);
         $school = $this->getSchool();
         $staff = Staff::with(['user.roles', 'user.country.states.lgas', 'user.state', 'user.lga'])->where('school_id', $school->id)->get();
         foreach ($staff as $each_staff) {
