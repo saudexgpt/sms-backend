@@ -516,7 +516,7 @@ class Result extends Model
                 $total = null;
                 $color = '';
                 $grade_point = null;
-                $count_subject_result = Result::with('subjectTeacher.subject')->where(
+                $count_subject_result = Result::where(
                     [
                         'subject_teacher_id' => $subject_teacher->id,
                         'school_id' => $school_id,
@@ -526,7 +526,7 @@ class Result extends Model
                     ]
                 )->where($approval_status, '!=', 'Not Submitted')->count();
                 if ($count_subject_result > 0) {
-                    $student_result = Result::with('subjectTeacher.subject')->where(
+                    $student_result = Result::where(
                         [
                             'subject_teacher_id' => $subject_teacher->id,
                             'school_id' => $school_id,
