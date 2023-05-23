@@ -790,10 +790,11 @@ class ResultsController extends Controller
     //This processes Class Broad Sheet
     public function classBroadSheet(Request $request, Result $result)
     {
+        set_time_limit(0);
         $user = $this->getUser();
         $class_teacher_id = $request->class_teacher_id;
         //$term_spec = $request->term_spec;
-        $class_teacher = ClassTeacher::find($class_teacher_id);
+        $class_teacher = ClassTeacher::with('c_class')->find($class_teacher_id);
 
         $class_name = $class_teacher->c_class->name;
 
