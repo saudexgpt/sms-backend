@@ -1181,28 +1181,30 @@ class ResultsController extends Controller
                 if (!empty($class_students)) {
                     foreach ($class_students as $class_student) :
                         $student = $class_student->student;
-                        if ($student->studentship_status !== 'left') {
-                            $student_id = $student->id;
+                        if ($student) {
+                            if ($student->studentship_status !== 'left') {
+                                $student_id = $student->id;
 
-                            $reg_no = $student->registration_no;
-                            //check whether any record exits for this subject and student if not create one
-                            $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
+                                $reg_no = $student->registration_no;
+                                //check whether any record exits for this subject and student if not create one
+                                $result_detail = $result->studentResult($sess_id, $student_id, $reg_no, $school_id, $term_id, $subject_teacher_id, $class_teacher_id, $teacher_id);
 
-                            $result_detail = $result->updateResultDetails($result_detail, $result_settings);
+                                $result_detail = $result->updateResultDetails($result_detail, $result_settings);
 
-                            // $mid_term = $result_detail->mid_term / 10;
-                            // $ca1 = $result_detail->ca1;
-                            // $ca2 = $result_detail->ca2;
-                            // $ca3 = $result_detail->ca3;
+                                // $mid_term = $result_detail->mid_term / 10;
+                                // $ca1 = $result_detail->ca1;
+                                // $ca2 = $result_detail->ca2;
+                                // $ca3 = $result_detail->ca3;
 
 
 
-                            $result_detail->test = $result->addCaScores($result_detail, $result_settings);
+                                $result_detail->test = $result->addCaScores($result_detail, $result_settings);
 
-                            $student->result_detail = $result_detail;
+                                $student->result_detail = $result_detail;
 
-                            // list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail);
-                            $students[] = $student;
+                                // list($student_half_record,  $student_full_record) = $this->analyzeProgress($result_detail);
+                                $students[] = $student;
+                            }
                         }
                     endforeach;
                 }
