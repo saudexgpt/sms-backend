@@ -1083,6 +1083,7 @@ class ResultsController extends Controller
      */
     public function getRecordedResultForApproval(Request $request)
     {
+        set_time_limit(0);
         $result = new Result();
         $class_teacher_id = $request->class_teacher_id;
         $school_id = $this->getSchool()->id;
@@ -1095,7 +1096,7 @@ class ResultsController extends Controller
 
         $class_details = ClassTeacher::with('c_class')->find($class_teacher_id);
 
-        $subject_teachers = SubjectTeacher::with(['subject', 'staff.user'])->where('class_teacher_id', $class_teacher_id)->where('teacher_id', '!=', NULL)->get();
+        $subject_teachers = SubjectTeacher::with(['subject', 'staff.user'])->where(['class_teacher_id' => $class_teacher_id, 'school_id' => $school_id])->where('teacher_id', '!=', NULL)->get();
 
         $curriculum_level_group_id = $class_details->level->curriculum_level_group_id;
         $grades = $this->getLevelGrades($curriculum_level_group_id);
@@ -1138,17 +1139,17 @@ class ResultsController extends Controller
                     }
 
 
-                    if ($class_event < 1) {
-                        $request->class_teacher_id = $subject_teacher->class_teacher_id;
-                        //we dont want to record save events...intead we want submit,approve, publish, disapprove etc
-                        $event_action = ucwords($action) . " students " . ucwords($assessment) . "-Term result for " . $class_details->c_class->name;
-                        //$request = json_encode($request);
+                    // if ($class_event < 1) {
+                    //     $request->class_teacher_id = $subject_teacher->class_teacher_id;
+                    //     //we dont want to record save events...intead we want submit,approve, publish, disapprove etc
+                    //     $event_action = ucwords($action) . " students " . ucwords($assessment) . "-Term result for " . $class_details->c_class->name;
+                    //     //$request = json_encode($request);
 
-                        $this->teacherStudentEventTrail($request, $event_action, 'class');
-                        //$this->auditTrailEvent($request, $event_action);
+                    //     $this->teacherStudentEventTrail($request, $event_action, 'class');
+                    //     //$this->auditTrailEvent($request, $event_action);
 
-                        $class_event++;
-                    }
+                    //     $class_event++;
+                    // }
                 }
                 $teacher_id = $subject_teacher->teacher_id;
                 $subject_teacher->result_action_array = ['false', 'false', 'Not Submitted', 'Not Submitted'];
