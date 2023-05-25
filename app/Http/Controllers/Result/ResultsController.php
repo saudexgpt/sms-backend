@@ -1117,7 +1117,7 @@ class ResultsController extends Controller
             $class_event = 0;
             foreach ($subject_teachers as $subject_teacher) :
 
-                $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'school_id' => $school_id, 'subject_teacher_id' => $subject_teacher->id, 'result_status' => 'Applicable'])->get();
+                $results = Result::where(['sess_id' => $sess_id, 'term_id' => $term_id, 'school_id' => $school_id, 'subject_teacher_id' => $subject_teacher->id, 'class_teacher_id' => $class_teacher_id, 'result_status' => 'Applicable'])->get();
 
                 $id = $subject_teacher->id;
 
