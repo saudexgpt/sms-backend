@@ -1167,11 +1167,20 @@ class ResultsController extends Controller
                 }
                 $subject_teacher_id = $subject_teacher->id;
                 $teacher = new Teacher();
-                $class_students = $teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id);
+                $class_students = StudentsInClass::with(['student' => function ($query) {
+                    $query->ActiveAndSuspended();
+                }, 'student.user'])->where([
+                    'class_teacher_id' => $subject_teacher->class_teacher_id,
+                    'sess_id' => $sess_id,
+                    //'term_id'=>$term_id,
+                    'school_id' => $school_id
+                ])->get();
+                //$teacher->teacherSubjectStudents($subject_teacher, $sess_id, $term_id, $school_id, false);
 
                 $students = [];
                 if (!empty($class_students)) {
-                    foreach ($class_students as $student) :
+                    foreach ($class_students as $class_student) :
+                        $student = $class_student->student;
                         if ($student->studentship_status !== 'left') {
                             $student_id = $student->id;
 
