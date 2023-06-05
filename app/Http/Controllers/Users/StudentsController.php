@@ -212,7 +212,8 @@ class StudentsController extends Controller
 
         // $parent_username = $this->generateUsername($school_id, 'parent');
         //$this->updateUniqNumDb($school->id, 'parent');
-        $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school_id)->orderBy('id')->get();
+        $levels = $this->getLevels();
+        // Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school_id)->orderBy('id')->get();
         $admission_sessions = SSession::where('id', '<=', $sess_id)->orderBy('id', 'DESC')->get();
         //////////////////////////////////////////////////////////////////////////
 
