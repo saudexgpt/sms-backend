@@ -213,14 +213,11 @@ class StudentsController extends Controller
         // $parent_username = $this->generateUsername($school_id, 'parent');
         //$this->updateUniqNumDb($school->id, 'parent');
         $levels = Level::with('classTeachers.c_class', 'levelGroup')->where('school_id', $school_id)->orderBy('id')->get();
-
-        $countries = Country::with('states.lgas')->orderBy('country_name')->get();
-        $selected_country = Country::with('states.lgas')->where('country_name', 'Nigeria')->first();
         $admission_sessions = SSession::where('id', '<=', $sess_id)->orderBy('id', 'DESC')->get();
         //////////////////////////////////////////////////////////////////////////
 
         $guardians = Guardian::with('user')->where('school_id', $this->getSchool()->id)->get();
-        return  response()->json(compact('levels', 'countries', 'selected_country', 'reg_no', 'admission_sessions', 'guardians'));
+        return  response()->json(compact('levels', 'reg_no', 'admission_sessions', 'guardians'));
         /*}
         return redirect()->route('student_reg_pin');*/
     }

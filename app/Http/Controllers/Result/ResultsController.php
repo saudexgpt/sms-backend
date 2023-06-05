@@ -265,11 +265,11 @@ class ResultsController extends Controller
         $subject_teacher_id = $request->subject_teacher_id;
         $sub_term = $request->sub_term;
 
-        $subject_teacher = SubjectTeacher::with('subject')->find($subject_teacher_id);
+        $subject_teacher = SubjectTeacher::with('subject', 'classTeacher.c_class', 'classTeacher.level')->find($subject_teacher_id);
 
         $class_teacher = $subject_teacher->classTeacher;
         $class_teacher_id = $class_teacher->id;
-        $class = CClass::find($class_teacher->class_id);
+        $class = $class_teacher->c_class;
         $curriculum_level_group_id = $class_teacher->level->curriculum_level_group_id;
 
         $result_settings = $this->getResultSettings($curriculum_level_group_id);
@@ -794,7 +794,7 @@ class ResultsController extends Controller
         $user = $this->getUser();
         $class_teacher_id = $request->class_teacher_id;
         //$term_spec = $request->term_spec;
-        $class_teacher = ClassTeacher::with('c_class')->find($class_teacher_id);
+        $class_teacher = ClassTeacher::with('c_class', 'level')->find($class_teacher_id);
 
         $class_name = $class_teacher->c_class->name;
 
@@ -1094,7 +1094,7 @@ class ResultsController extends Controller
 
         //$request = request()->all();
 
-        $class_details = ClassTeacher::with('c_class')->find($class_teacher_id);
+        $class_details = ClassTeacher::with('c_class', 'level')->find($class_teacher_id);
 
         $subject_teachers = SubjectTeacher::with(['subject', 'staff.user'])->where(['class_teacher_id' => $class_teacher_id, 'school_id' => $school_id])->where('teacher_id', '!=', NULL)->get();
 

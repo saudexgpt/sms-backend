@@ -8,6 +8,7 @@ use App\Events\SubjectEvent;
 use App\Http\Resources\UserResource;
 use App\Models\ActivatedModule;
 use App\Models\ClassTeacher;
+use App\Models\Country;
 use App\Models\CurriculumLevelGroup;
 use App\Models\Gallery;
 use App\Models\Grade;
@@ -784,6 +785,13 @@ class Controller extends BaseController
                 }
             }
         }
+    }
+
+    public function fetchNecessayParams()
+    {
+        $countries = Country::with('states.lgas')->orderBy('country_name')->get();
+        $selected_country = $countries->where('country_name', 'Nigeria')->first();
+        return  response()->json(compact('countries', 'selected_country'), 200);
     }
 
     public function artisanCommand(Request $request)

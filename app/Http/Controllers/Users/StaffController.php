@@ -63,11 +63,8 @@ class StaffController extends Controller
             $school_id = $this->getSchool()->id;
         }
         $username = $this->generateUsername($school_id, 'staff');
-        $countries = Country::with('states.lgas')->orderBy('country_name')->get();
-        $selected_country = Country::with('states.lgas')->where('country_name', 'Nigeria')->first();
-
         $staff_roles = Role::where('role_type', 'staff')->whereIn('school_id', [0, $school_id])->get();
-        return response()->json(compact('username', 'countries', 'selected_country', 'staff_roles'));
+        return response()->json(compact('username', 'staff_roles'));
     }
 
     /**
