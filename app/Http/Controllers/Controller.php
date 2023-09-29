@@ -794,8 +794,8 @@ class Controller extends BaseController
         return  response()->json(compact('countries', 'selected_country'), 200);
     }
 
-    public function artisanCommand(Request $request)
-    {
-        \Illuminate\Support\Facades\Artisan::call($request->command);
-    }
+    // public function artisanCommand(Request $request)
+    // {
+    //     \Illuminate\Support\Facades\Artisan::call($request->command);
+    // }
 }
