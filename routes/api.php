@@ -65,7 +65,7 @@ Route::get('students/create', [StudentsController::class, 'create']);
 Route::get('staff/create', [StaffController::class, 'create']);
 Route::post('students/store-with-pin', [StudentsController::class, 'storeWithPin']);
 Route::post('staff/store-with-pin', [StaffController::class, 'storeWithPin']);
-
+Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
@@ -86,7 +86,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('register', [SchoolsController::class, 'registerPotentialSchool']);
     });
     // Protected routes for authenticated users
-    Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
     Route::get('user-notifications', [UsersController::class, 'userNotifications']);
     Route::get('notification/mark-as-read', [UsersController::class, 'markNotificationAsRead']);
 
