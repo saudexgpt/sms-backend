@@ -282,6 +282,7 @@ class AssignmentsController extends Controller
 
     public function studentAssignments($id = NULL)
     {
+        set_time_limit(0);
         // DB::enableQueryLog();
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
