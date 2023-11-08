@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laracasts\Flash\Flash;
 use App\Http\Requests\AssignmentRequest;
+use Carbon\Carbon;
 
 class AssignmentsController extends Controller
 {
@@ -283,6 +284,7 @@ class AssignmentsController extends Controller
     public function studentAssignments($id = NULL)
     {
         set_time_limit(0);
+        $today = date('Y-m-d H:i:s', strtotime('now'));
         // DB::enableQueryLog();
         $school_id = $this->getSchool()->id;
         $sess_id = $this->getSession()->id;
@@ -304,7 +306,7 @@ class AssignmentsController extends Controller
 
         $class_teacher_id = $student_in_class->class_teacher_id;
         $subject_teacher_ids = SubjectTeacher::where('class_teacher_id', $class_teacher_id)->pluck('id');
-        $assignments = Assignment::with(['subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->whereIn('subject_teacher_id', $subject_teacher_ids)->orderBy('assignments.id', 'DESC')->first();
+        $assignments = Assignment::with(['subjectTeacher.subject', 'subjectTeacher.classTeacher.c_class', 'subjectTeacher.staff.user'])->where(['school_id' => $school_id, 'sess_id' => $sess_id, 'term_id' => $term_id])->whereIn('subject_teacher_id', $subject_teacher_ids)->where('deadline', '>', $today)->orderBy('id', 'DESC')->get();
 
         // $assignments = Assignment::join('subject_teachers', 'assignments.subject_teacher_id', '=', 'subject_teachers.id')
         //     ->join('subjects', 'subject_teachers.subject_id', '=', 'subjects.id')
