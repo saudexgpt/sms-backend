@@ -295,7 +295,11 @@ class AssignmentsController extends Controller
         }
         $student_in_class_obj = new StudentsInClass();
         $student = Student::find($stud_id);
-        $student_in_class = $student_in_class_obj->fetchStudentInClass($student->id, $sess_id, $term_id, $school_id);
+        $student_in_class = StudentsInClass::where([
+            'school_id' => $school_id,
+            'sess_id' => $sess_id,
+            'student_id' => $stud_id,
+        ])->first();
 
         $class_teacher_id = $student_in_class->class_teacher_id;
         $subject_teacher_ids = SubjectTeacher::where('class_teacher_id', $class_teacher_id)->pluck('id');
