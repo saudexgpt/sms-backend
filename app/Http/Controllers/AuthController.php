@@ -24,7 +24,7 @@ class AuthController extends Controller
     public function __construct()
     {
         // $this->middleware('guest')->except('logout');
-        $this->username = $this->findUsername();
+       //  $this->username = $this->findUsername();
     }
     public function findUsername()
     {
@@ -101,6 +101,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $this->username = $this->findUsername();
         $credentials = $request->only($this->username(), 'password');
         $request->validate([
             // 'email' => 'required|string|email',
