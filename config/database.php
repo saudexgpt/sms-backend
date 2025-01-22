@@ -41,7 +41,6 @@ return [
             'journal_mode' => null,
             'synchronous' => null,
         ],
-<<<<<<< HEAD
         // 'mongodb' => [
         //     'driver'   => 'mongodb',
         //     'dsn' => 'mongodb://127.0.0.1:27017',
@@ -80,9 +79,6 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-=======
-
->>>>>>> 8b816b7256d67a5db7c9e56108b4f2464301772a
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
@@ -188,7 +184,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
