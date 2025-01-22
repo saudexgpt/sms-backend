@@ -13,42 +13,36 @@ return [
 
     'roles_structure' => [
         'super' => [
-            'users' => 'c,r,u,d',
-            'customers' => 'c,r,u,d',
-            'sales_target' => 'c,r,u,d',
-            'sales' => 'd',
-            'customer_types' => 'c,r,u,d',
-            'payments' => 'c,r,u,d',
-            'products' => 'r',
-            'regions' => 'c,r,u,d',
-            'teams' => 'c,r,u,d',
-            'profile' => 'r,u'
+            'consulting' => 'c,r,u,d',
+            'clients' => 'c,r,u,d',
+            'staff' => 'c,r',
+            'client project' => 'c,r,u,d',
+            'standards' => 'c,r,u,d',
+            'clauses' => 'c,r,u,d',
+            'evidence' => 'c,r,u,d',
+            'gap assessment' => 'c,r,u,d',
+            'client certificate' => 'up',
+            'feedback form' => 'm',
         ],
         'admin' => [
-            'users' => 'c,r,u,d',
-            'customers' => 'c,r,u,d',
-            'customer_types' => 'c,r,u,d',
-            'payments' => 'c,r,u,d',
-            'products' => 'r',
-            'regions' => 'c,r,u,d',
-            'teams' => 'c,r,u,d',
-            'profile' => 'r,u'
+            'clients' => 'c,r,u',
+            'staff' => 'r',
+            'client project' => 'c,r,u',
+            'standards' => 'c,r,u',
+            'clauses' => 'c,r,u',
+            'evidence' => 'c,r,u',
+            'gap assessment' => 'c,r,u',
+            'client certificate' => 'up',
         ],
-        'sales_rep' => [
-            'customers' => 'c,r,u',
-            'sales' => 'c,r,u,d',
-            'products' => 'r',
-            'profile' => 'r,u',
-        ],
-        'customer' => [
-            'profile' => 'r,u',
-        ],
+        'client' => [],
     ],
 
     'permissions_map' => [
         'c' => 'create',
         'r' => 'read',
         'u' => 'update',
-        'd' => 'delete'
+        'd' => 'delete',
+        'up' => 'upload',
+        'm' => 'manage'
     ]
 ];
