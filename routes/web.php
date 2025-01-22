@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApplicationController;
 
@@ -17,3 +18,6 @@ use App\Http\Controllers\ApplicationController;
 // Route::get('/{any}', [ApplicationController::class, 'index'])->where('any', '^(?!api).*$');
 
 Route::get('/admin/registration-confirmation/{hash}', 'Auth\LoginController@confirmRegistration')->name('confirm_admin_reg');
+Route::group(['prefix' => 'auth'], function () {
+    Route::post('login', [AuthController::class, 'login'])->name('login');
+});

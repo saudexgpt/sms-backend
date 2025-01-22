@@ -67,7 +67,7 @@ Route::post('students/store-with-pin', [StudentsController::class, 'storeWithPin
 Route::post('staff/store-with-pin', [StaffController::class, 'storeWithPin']);
 Route::get('fetch-necessary-params', [Controller::class, 'fetchNecessayParams']);
 Route::group(['prefix' => 'auth'], function () {
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'login'])->name('login');
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
 
     Route::group(['middleware' => 'auth:sanctum'], function () {
