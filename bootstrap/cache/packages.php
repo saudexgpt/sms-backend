@@ -48,15 +48,29 @@
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
+  'openai-php/laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'OpenAI\\Laravel\\ServiceProvider',
+    ),
+  ),
+  'railsware/mailtrap-php' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Mailtrap\\Bridge\\Laravel\\MailtrapApiProvider',
+    ),
+  ),
   'santigarcor/laratrust' => 
   array (
-    'aliases' => 
-    array (
-      'Laratrust' => 'Laratrust\\LaratrustFacade',
-    ),
     'providers' => 
     array (
       0 => 'Laratrust\\LaratrustServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Laratrust' => 'Laratrust\\LaratrustFacade',
     ),
   ),
 );
