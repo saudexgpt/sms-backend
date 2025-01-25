@@ -40,14 +40,6 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-<<<<<<< HEAD
-=======
-        'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
-            'hash' => false,
-        ],
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
     ],
 
     /*
@@ -101,11 +93,7 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-<<<<<<< HEAD
             'table' => 'password_reset_tokens',
-=======
-            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
             'expire' => 60,
             'throttle' => 60,
         ],

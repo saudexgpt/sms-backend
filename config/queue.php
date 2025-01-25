@@ -36,16 +36,9 @@ return [
 
         'database' => [
             'driver' => 'database',
-<<<<<<< HEAD
             'table' => 'jobs',
             'queue' => 'default',
             'retry_after' => 90,
-=======
-            'connection' => env('DB_QUEUE_CONNECTION'),
-            'table' => env('DB_QUEUE_TABLE', 'jobs'),
-            'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
             'after_commit' => false,
         ],
 
@@ -92,11 +85,7 @@ return [
     */
 
     'batching' => [
-<<<<<<< HEAD
         'database' => env('DB_CONNECTION', 'mysql'),
-=======
-        'database' => env('DB_CONNECTION', 'sqlite'),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
         'table' => 'job_batches',
     ],
 

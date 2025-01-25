@@ -8,10 +8,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
-<<<<<<< HEAD
-=======
-use Laratrust\Contracts\LaratrustUser;
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
 use Laratrust\Traits\HasRolesAndPermissions;
 use Illuminate\Database\Eloquent\SoftDeletes;
 

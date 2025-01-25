@@ -33,11 +33,7 @@ return [
 
     'deprecations' => [
         'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'),
-<<<<<<< HEAD
         'trace' => false,
-=======
-        'trace' => env('LOG_DEPRECATIONS_TRACE', false),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
     ],
 
     /*
@@ -73,11 +69,7 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-<<<<<<< HEAD
             'days' => 14,
-=======
-            'days' => env('LOG_DAILY_DAYS', 14),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
             'replace_placeholders' => true,
         ],
 
@@ -116,11 +108,7 @@ return [
         'syslog' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
-<<<<<<< HEAD
             'facility' => LOG_USER,
-=======
-            'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
->>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
             'replace_placeholders' => true,
         ],
 
