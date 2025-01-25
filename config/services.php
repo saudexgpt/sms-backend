@@ -14,6 +14,7 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),
@@ -21,6 +22,8 @@ return [
         'scheme' => 'https',
     ],
 
+=======
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
@@ -30,5 +33,11 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+
+    'pusher' => [
+        'beams_instance_id' => env('PUSHER_BEAM_INSTANCE_ID'),
+        'beams_secret_key' => env('PUSHER_BEAM_SECRET_KEY'),
+    ],
+
 
 ];

@@ -1,17 +1,22 @@
 /.phpunit.cache
+<<<<<<< HEAD
 /node_modules
+=======
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
 /node_modules
+/public/build
 /public/hot
 /public/storage
-/public/js
-/public/css
-/public/fonts
-/public/images
 /storage/*.key
+/storage/pail
 /vendor
 .env
 .env.backup
 .env.production
+<<<<<<< HEAD
+=======
+.phpactor.json
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -20,4 +25,10 @@ npm-debug.log
 yarn-error.log
 /.fleet
 /.idea
+<<<<<<< HEAD
 /.vscode
+=======
+/.nova
+/.vscode
+/.zed
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd

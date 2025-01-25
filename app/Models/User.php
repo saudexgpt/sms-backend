@@ -6,11 +6,16 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
 use Laravel\Sanctum\HasApiTokens;
+<<<<<<< HEAD
+=======
+use Laratrust\Contracts\LaratrustUser;
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
 use Laratrust\Traits\HasRolesAndPermissions;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable
+class User extends Authenticatable implements LaratrustUser
 {
     use HasRolesAndPermissions;
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
@@ -90,9 +95,9 @@ class User extends Authenticatable
     {
         //
         if ($phone) {
-            return  User::where('phone1', $value)->orWhere('phone2', $value)->first();
+            return User::where('phone1', $value)->orWhere('phone2', $value)->first();
         }
-        return  User::where('email', $value)->first();
+        return User::where('email', $value)->first();
     }
 
     public function uploadFile($request, $file_name, $folder)

@@ -19,3 +19,10 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+Header always set Access-Control-Allow-Origin "*"
+=======
+>>>>>>> 8b816b7256d67a5db7c9e56108b4f2464301772a
+>>>>>>> f99a6181e9ce69c2e3af34ec7847bb2c510d2edd
