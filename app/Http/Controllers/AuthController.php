@@ -24,7 +24,7 @@ class AuthController extends Controller
     public function __construct()
     {
         // $this->middleware('guest')->except('logout');
-       //  $this->username = $this->findUsername();
+        //  $this->username = $this->findUsername();
     }
     public function findUsername()
     {
@@ -33,7 +33,7 @@ class AuthController extends Controller
         $user = User::where('phone1', $login)->first();
 
         if ($user) {
-            $fieldType =  'phone1';
+            $fieldType = 'phone1';
 
             request()->merge([$fieldType => $login]);
         } else {
@@ -71,10 +71,10 @@ class AuthController extends Controller
         ]);
 
         $user = new User([
-            'first_name'  => $request->first_name,
-            'last_name'  => $request->last_name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'username' => $request->username,
-            'phone'  => $request->phone,
+            'phone' => $request->phone,
             'email' => $request->email,
             'password' => bcrypt($request->password),
         ]);
@@ -138,9 +138,9 @@ class AuthController extends Controller
      *
      * @return [json] user object
      */
-    public function user()
+    public function user(Request $request)
     {
-        return new UserResource(Auth::user());
+        return new UserResource($request->user());
         // return response()->json($request->user());
     }
 
