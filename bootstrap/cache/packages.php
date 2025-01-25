@@ -1,9 +1,13 @@
 <?php return array (
-  'laravel/pail' => 
+  'intervention/image' => 
   array (
     'providers' => 
     array (
-      0 => 'Laravel\\Pail\\PailServiceProvider',
+      0 => 'Intervention\\Image\\ImageServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Image' => 'Intervention\\Image\\Facades\\Image',
     ),
   ),
   'laravel/sail' => 
@@ -48,29 +52,26 @@
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
-  'openai-php/laravel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'OpenAI\\Laravel\\ServiceProvider',
-    ),
-  ),
-  'railsware/mailtrap-php' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Mailtrap\\Bridge\\Laravel\\MailtrapApiProvider',
-    ),
-  ),
   'santigarcor/laratrust' => 
   array (
+    'providers' => 
+    array (
+      0 => 'Laratrust\\LaratrustServiceProvider',
+    ),
     'aliases' => 
     array (
       'Laratrust' => 'Laratrust\\LaratrustFacade',
     ),
+  ),
+  'spatie/laravel-ignition' => 
+  array (
     'providers' => 
     array (
-      0 => 'Laratrust\\LaratrustServiceProvider',
+      0 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Flare' => 'Spatie\\LaravelIgnition\\Facades\\Flare',
     ),
   ),
 );
