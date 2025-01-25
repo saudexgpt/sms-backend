@@ -70,7 +70,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
 
-    Route::group(['middleware' => 'auth:sanctum'], function () {
+    Route::group(['middleware' => 'auth:api'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
 
         Route::get('user', [AuthController::class, 'user']); //->middleware('permission:read-users');
@@ -79,7 +79,7 @@ Route::group(['prefix' => 'auth'], function () {
 
 
 //////////////////////////////// APP APIS //////////////////////////////////////////////
-Route::group(['middleware' => 'auth:sanctum'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
 
     Route::group(['prefix' => 'school'], function () {
         Route::get('create', [SchoolsController::class, 'create']);
