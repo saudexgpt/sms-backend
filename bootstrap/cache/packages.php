@@ -64,13 +64,13 @@
   ),
   'santigarcor/laratrust' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Laratrust\\LaratrustServiceProvider',
-    ),
     'aliases' => 
     array (
       'Laratrust' => 'Laratrust\\LaratrustFacade',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laratrust\\LaratrustServiceProvider',
     ),
   ),
 );
