@@ -71,10 +71,10 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
     Route::post('register', [AuthController::class, 'register'])->middleware('permission:create-users');
 
+
+    Route::get('user', [AuthController::class, 'user']); //->middleware('permission:read-users');
     Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
-
-        Route::get('user', [AuthController::class, 'user']); //->middleware('permission:read-users');
     });
 });
 
