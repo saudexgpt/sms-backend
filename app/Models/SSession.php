@@ -16,7 +16,7 @@ class SSession extends Model
     /**
      * @var string
      */
-    protected $table = 'sessions';
+    protected $table = 'ssessions';
 
     /**
      * The attributes that are mass assignable.
