@@ -11,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Laratrust\Traits\HasRolesAndPermissions;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable implements LaratrustUser
+class User extends Authenticatable
 {
     use HasRolesAndPermissions;
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
